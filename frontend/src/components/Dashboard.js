@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './Dashboard.css';
 
@@ -17,11 +17,7 @@ const Dashboard = ({ user, logout }) => {
   });
   const [errors, setErrors] = useState({});
 
-  useEffect(() => {
-    fetchLinks();
-  }, [searchTerm, selectedTag]);
-
-  const fetchLinks = async () => {
+  const fetchLinks = useCallback(async () => {
     try {
       const params = {};
       if (searchTerm) params.search = searchTerm;
@@ -34,7 +30,11 @@ const Dashboard = ({ user, logout }) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchTerm, selectedTag]);
+
+  useEffect(() => {
+    fetchLinks();
+  }, [fetchLinks]);
 
   const handleLogout = async () => {
     try {

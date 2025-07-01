@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import './Auth.css';
@@ -10,18 +10,7 @@ const EmailVerification = () => {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const token = searchParams.get('token');
-    if (!token) {
-      setError('Invalid verification link');
-      setLoading(false);
-      return;
-    }
-
-    verifyEmail(token);
-  }, [searchParams]);
-
-  const verifyEmail = async (token) => {
+  const verifyEmail = useCallback(async (token) => {
     try {
       const response = await axios.get(`/api/auth/verify-email/${token}`);
       setMessage(response.data.message);
@@ -37,7 +26,18 @@ const EmailVerification = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    const token = searchParams.get('token');
+    if (!token) {
+      setError('Invalid verification link');
+      setLoading(false);
+      return;
+    }
+
+    verifyEmail(token);
+  }, [searchParams, verifyEmail]);
 
   if (loading) {
     return (
