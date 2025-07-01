@@ -186,6 +186,32 @@ npm start
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
+## 🚀 Deployment
+
+### Vercel Deployment (Recommended)
+
+This project is configured for easy deployment on Vercel with automatic updates. See [DEPLOYMENT.md](./DEPLOYMENT.md) for detailed instructions.
+
+**Quick Deploy Steps:**
+1. Push your code to GitHub
+2. Connect your repository to Vercel
+3. Set environment variables in Vercel dashboard
+4. Deploy automatically!
+
+**Benefits:**
+- ✅ Automatic deployments on code push
+- ✅ Free hosting tier
+- ✅ Built-in SSL certificates
+- ✅ Global CDN
+- ✅ Easy environment variable management
+
+### Other Deployment Options
+
+- **Railway**: Simple full-stack deployment
+- **Render**: Free tier available
+- **Heroku**: Mature platform (paid)
+- **DigitalOcean App Platform**: Scalable option
+
 ## License
 
 This project is licensed under the MIT License.

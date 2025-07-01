@@ -12,7 +12,9 @@ import AdminDashboard from './components/AdminDashboard';
 import './App.css';
 
 // Configure axios defaults
-axios.defaults.baseURL = 'http://localhost:5000/api';
+axios.defaults.baseURL = process.env.NODE_ENV === 'production' 
+  ? '/api' 
+  : 'http://localhost:5000/api';
 axios.defaults.withCredentials = true;
 
 function App() {
