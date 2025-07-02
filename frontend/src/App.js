@@ -12,10 +12,39 @@ import AdminDashboard from './components/AdminDashboard';
 import './App.css';
 
 // Configure axios defaults
-axios.defaults.baseURL = process.env.NODE_ENV === 'production' 
+const baseURL = process.env.NODE_ENV === 'production' 
   ? '/api' 
   : 'http://localhost:5000/api';
+
+console.log('Axios baseURL:', baseURL);
+console.log('NODE_ENV:', process.env.NODE_ENV);
+
+axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
+
+// Add request interceptor for debugging
+axios.interceptors.request.use(
+  (config) => {
+    console.log('Making request to:', config.url);
+    return config;
+  },
+  (error) => {
+    console.error('Request error:', error);
+    return Promise.reject(error);
+  }
+);
+
+// Add response interceptor for debugging
+axios.interceptors.response.use(
+  (response) => {
+    console.log('Response received:', response.status, response.config.url);
+    return response;
+  },
+  (error) => {
+    console.error('Response error:', error.response?.status, error.response?.data, error.config?.url);
+    return Promise.reject(error);
+  }
+);
 
 function App() {
   const [user, setUser] = useState(null);
@@ -30,6 +59,7 @@ function App() {
       const response = await axios.get('/auth/check');
       setUser(response.data.user);
     } catch (error) {
+      console.error('Auth check error:', error);
       setUser(null);
     } finally {
       setLoading(false);
