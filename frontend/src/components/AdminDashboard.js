@@ -154,7 +154,7 @@ const AdminDashboard = () => {
   return (
     <div className="admin-dashboard">
       <h1>Admin Dashboard</h1>
-      
+      <a href='./dashboard'>Go back</a>
       <div className="admin-tabs">
         <button 
           className={activeTab === 'stats' ? 'active' : ''} 

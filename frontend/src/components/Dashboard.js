@@ -176,9 +176,9 @@ const Dashboard = ({ user, logout }) => {
           <h1>My Links</h1>
           <div className="user-info">
             <span>Welcome, {user.username}!</span>
-            {!user.isEmailVerified && (
+            {/* {!user.isEmailVerified && (
               <span className="email-warning">⚠️ Email not verified</span>
-            )}
+            )} */}
             {user.role === 'admin' && (
               <a href="/admin" className="admin-link">Manage Users</a>
             )}

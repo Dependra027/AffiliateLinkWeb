@@ -1,10 +1,10 @@
 .dashboard {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 .dashboard-header {
-  background: white;
+  background: rgb(39, 36, 36);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   padding: 1rem 0;
   position: sticky;
@@ -24,7 +24,7 @@
 .header-content h1 {
   font-size: 2rem;
   font-weight: 700;
-  color: #333;
+  color: white;
   margin: 0;
 }
 
@@ -87,7 +87,7 @@
 .search-input {
   flex: 1;
   padding: 0.75rem;
-  border: 2px solid #e1e8ed;
+  border: 2px solid #010101;
   border-radius: 8px;
   font-size: 1rem;
   transition: border-color 0.3s ease;
@@ -100,8 +100,8 @@
 
 .tag-filter {
   padding: 0.75rem;
-  border: 2px solid #e1e8ed;
-  border-radius: 8px;
+  border: 2px solid #000000;
+  border-radius: 9px;
   font-size: 1rem;
   background: white;
   min-width: 150px;
@@ -110,11 +110,13 @@
 .tag-filter:focus {
   outline: none;
   border-color: #3498db;
+ 
 }
 
 .form-container {
   background: white;
   border-radius: 12px;
+  
   padding: 2rem;
   margin-bottom: 2rem;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -163,8 +165,9 @@
 .link-card {
   background: white;
   border-radius: 12px;
+  
   padding: 1.5rem;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 18px 28px 5px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease, box-shadow 0.3s ease;
   border: 1px solid #e1e8ed;
 }
@@ -264,6 +267,7 @@
   .search-filter {
     flex-direction: column;
     max-width: none;
+    
   }
   
   .form-container {
