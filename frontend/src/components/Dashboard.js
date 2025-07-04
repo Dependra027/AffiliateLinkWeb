@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './Dashboard.css';
 
-const Dashboard = ({ user, logout }) => {
+const Dashboard = ({ user, logout, setUser }) => {
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,6 +17,7 @@ const Dashboard = ({ user, logout }) => {
     tags: ''
   });
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const fetchLinks = useCallback(async () => {
     try {
@@ -166,6 +168,10 @@ const Dashboard = ({ user, logout }) => {
     }
   };
 
+  const navigateToPayments = () => {
+    navigate('/payments');
+  };
+
   // Get unique tags from all links
   const allTags = [...new Set(links.flatMap(link => link.tags || []))];
 
@@ -175,7 +181,20 @@ const Dashboard = ({ user, logout }) => {
         <div className="header-content">
           <h1>My Links</h1>
           <div className="user-info">
-            <span>Welcome, {user.username}!</span>
+            <div className="user-details">
+              <span>Welcome, {user.username}!</span>
+              <div className="credits-display">
+                <span className="credits-label">Credits:</span>
+                <span className="credits-amount">{user.credits || 0}</span>
+                <button 
+                  onClick={navigateToPayments} 
+                  className="btn btn-credits"
+                  title="Manage Credits"
+                >
+                  💰
+                </button>
+              </div>
+            </div>
             {/* {!user.isEmailVerified && (
               <span className="email-warning">⚠️ Email not verified</span>
             )} */}

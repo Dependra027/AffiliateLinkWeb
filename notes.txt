@@ -1,0 +1,57 @@
+# Study Notes: MERN Link Manager Project
+
+## Backend (Node.js, Express.js, MongoDB)
+- **Node.js**: JavaScript runtime for server-side code.
+- **Express.js**: Web framework for building REST APIs.
+- **MongoDB**: NoSQL database for storing users, links, and payments.
+- **Mongoose**: ODM for MongoDB, defines schemas and models.
+- **JWT (jsonwebtoken)**: Used for authentication (login, protected routes).
+- **bcryptjs**: Password hashing for secure storage.
+- **express-validator**: Middleware for validating and sanitizing user input.
+- **Nodemailer**: Sending emails (verification, password reset).
+- **CORS**: Allows cross-origin requests (frontend-backend communication).
+- **dotenv**: Loads environment variables from .env/config.env files.
+
+## Frontend (React.js)
+- **React.js**: Library for building user interfaces.
+- **React Router**: Handles client-side routing (navigation between pages).
+- **Axios**: HTTP client for making API requests to backend.
+- **CSS3**: Styling for modern, responsive UI.
+
+## Payment Integration
+- **Razorpay**: Payment gateway for processing credit purchases.
+  - Used Razorpay Checkout.js for frontend payment modal.
+  - Backend uses Razorpay Node.js SDK to create orders and verify payments.
+  - Signature verification ensures payment authenticity.
+- **Credit System**: Users can buy credits in packages (10, 20, 50, 100 credits).
+- **Payment History**: All transactions are logged and shown to the user.
+
+## Security Concepts
+- **Password Hashing**: User passwords are never stored in plain text.
+- **JWT Authentication**: Secure, stateless user sessions.
+- **Input Validation**: Prevents malicious or malformed data.
+- **Protected Routes**: Only authenticated users can access certain endpoints.
+- **Signature Verification**: Ensures payment data is not tampered with.
+- **CORS Configuration**: Restricts which domains can access the backend.
+
+## Deployment
+- **Vercel**: Recommended for easy deployment (auto-deploys from GitHub, manages environment variables).
+- **Other Options**: Railway, Render, Heroku, DigitalOcean App Platform.
+- **Environment Variables**: Store sensitive keys (JWT secret, Razorpay keys, DB URI) securely.
+
+## Project Structure
+- **backend/**: All server-side code (controllers, models, routes, middleware).
+- **frontend/**: React app (components, pages, styles).
+- **CREDIT_SYSTEM.md**: Full documentation of the credit/payment system.
+- **README.md**: Project overview, setup, and API summary.
+
+## Useful Concepts
+- **REST API**: Backend exposes endpoints for frontend to interact with data.
+- **State Management**: React's useState/useEffect for managing UI state.
+- **Async/Await**: Handles asynchronous API calls in both backend and frontend.
+- **Error Handling**: Both client and server provide user-friendly error messages.
+- **Responsive Design**: CSS ensures app works on all device sizes.
+
+---
+
+> Use this file as a quick reference for all major technologies and concepts used in this project for study or revision purposes. 

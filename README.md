@@ -11,6 +11,33 @@ A full-stack web application for managing and organizing bookmarks/links with us
 - **Security**: Password hashing, input validation, and protected routes
 - **Email Features**: Email verification, password reset, and welcome emails
 
+## 💰 Credit System & Payments
+
+This project includes a complete credit system with Razorpay integration, allowing users to purchase credits and use them within the app.
+
+### Key Features
+- **Credit Balance**: Users can view their current credit balance in the dashboard.
+- **Purchase Credits**: Multiple packages (10, 20, 50, 100 credits) available for purchase via Razorpay.
+- **Payment History**: Users can view their full payment history and status.
+- **Real-time Updates**: Credit balance updates instantly after purchase.
+- **Secure Payments**: All payments are verified server-side with Razorpay signature verification.
+- **Persistent Credits**: Credits persist across sessions and logins.
+
+### API Endpoints
+- `GET /api/payments/packages` - List available credit packages
+- `GET /api/payments/credits` - Get user credit balance and payment history
+- `POST /api/payments/create-order` - Create a Razorpay order for purchasing credits
+- `POST /api/payments/verify-payment` - Verify payment and add credits
+- `POST /api/payments/deduct-credits` - Deduct credits (admin/system use)
+
+### Setup
+- Install backend dependency: `npm install razorpay`
+- Add Razorpay keys to your environment variables:
+  - `RAZORPAY_KEY_ID`
+  - `RAZORPAY_KEY_SECRET`
+
+For full technical details, troubleshooting, and advanced usage, see [CREDIT_SYSTEM.md](./CREDIT_SYSTEM.md).
+
 ## Tech Stack
 
 ### Backend

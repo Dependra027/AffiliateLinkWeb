@@ -14,6 +14,7 @@ try {
 const authRoutes = require('./routes/auth');
 const linkRoutes = require('./routes/links');
 const adminRoutes = require('./routes/admin');
+const paymentRoutes = require('./routes/payments');
 
 const app = express();
 
@@ -66,6 +67,7 @@ connectDB();
 app.use('/api/auth', authRoutes);
 app.use('/api/links', linkRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

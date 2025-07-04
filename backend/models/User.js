@@ -46,7 +46,40 @@ const userSchema = new mongoose.Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-  }
+  },
+  // Credit system fields
+  credits: {
+    type: Number,
+    default: 0,
+    min: 0
+  },
+  // Payment history
+  payments: [{
+    razorpayOrderId: {
+      type: String,
+      required: true
+    },
+    razorpayPaymentId: {
+      type: String
+    },
+    amount: {
+      type: Number,
+      required: true
+    },
+    credits: {
+      type: Number,
+      required: true
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'completed', 'failed'],
+      default: 'pending'
+    },
+    paymentDate: {
+      type: Date,
+      default: Date.now
+    }
+  }]
 }, {
   timestamps: true
 });
@@ -67,6 +100,26 @@ userSchema.pre('save', async function(next) {
 // Method to compare password
 userSchema.methods.comparePassword = async function(candidatePassword) {
   return await bcrypt.compare(candidatePassword, this.password);
+};
+
+// Method to add credits
+userSchema.methods.addCredits = function(amount) {
+  this.credits += amount;
+  return this.save();
+};
+
+// Method to deduct credits
+userSchema.methods.deductCredits = function(amount) {
+  if (this.credits >= amount) {
+    this.credits -= amount;
+    return this.save();
+  }
+  throw new Error('Insufficient credits');
+};
+
+// Method to check if user has enough credits
+userSchema.methods.hasEnoughCredits = function(amount) {
+  return this.credits >= amount;
 };
 
 // Generate email verification token

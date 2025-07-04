@@ -114,7 +114,8 @@ const login = async (req, res) => {
         username: user.username,
         email: user.email,
         isEmailVerified: user.isEmailVerified,
-        role: user.role
+        role: user.role,
+        credits: user.credits
       }
     });
   } catch (error) {
@@ -143,7 +144,8 @@ const checkAuth = async (req, res) => {
         username: req.user.username,
         email: req.user.email,
         isEmailVerified: req.user.isEmailVerified,
-        role: req.user.role
+        role: req.user.role,
+        credits: req.user.credits
       }
     });
   } catch (error) {

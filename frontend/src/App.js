@@ -9,6 +9,7 @@ import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 import EmailVerification from './components/EmailVerification';
 import AdminDashboard from './components/AdminDashboard';
+import PaymentManager from './components/PaymentManager';
 import './App.css';
 
 // Configure axios defaults
@@ -102,7 +103,11 @@ function App() {
           />
           <Route 
             path="/dashboard" 
-            element={user ? <Dashboard user={user} logout={logout} /> : <Navigate to="/login" />} 
+            element={user ? <Dashboard user={user} logout={logout} setUser={setUser} /> : <Navigate to="/login" />} 
+          />
+          <Route 
+            path="/payments" 
+            element={user ? <PaymentManager user={user} setUser={setUser} /> : <Navigate to="/login" />} 
           />
           <Route 
             path="/forgot-password" 
