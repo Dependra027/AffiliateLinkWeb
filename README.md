@@ -3,23 +3,24 @@
 **Created by Dependra Singh**
 
 ## Introduction
-This website is a full-stack Link Manager application developed by Dependra Singh. It was created to help users efficiently manage, organize, and track their bookmarks and important links in one secure place. The motivation behind building this project was to provide a modern, user-friendly solution for both personal and professional link management, going beyond basic bookmarking by offering advanced features such as notifications, analytics, and a credit/payment system.
+This website is a full-stack Link Manager and Affiliate Analytics application developed by Dependra Singh. It was created to help users efficiently generate, manage, and track affiliate links and bookmarks in one secure place. Users can create affiliate links, share them across different platforms (such as social media, messaging apps, or websites), and monitor their performance. The motivation behind building this project was to provide a modern, user-friendly solution for both personal and professional link management, with advanced features such as notifications, analytics, and a credit/payment system.
 
 ## Why This Project Was Made
-Managing a growing number of links and bookmarks can quickly become overwhelming, especially for users who need to organize resources for work, study, or personal interests. Existing solutions often lack advanced features, flexibility, or security. This project was made to address these gaps by providing:
+Managing and promoting affiliate links or business campaigns across multiple platforms can be challenging. Users need to know which channels are most effective for their growth. This project was made to address these needs by providing:
 - Secure user authentication and data storage
-- Easy organization and search of links
+- Easy generation and organization of affiliate links
+- Ability to share links to various platforms
 - Real-time notifications and milestone tracking
 - Integrated credit and payment system for premium features
-- Analytics to help users understand link usage and engagement
+- Detailed analytics (such as click stats) to help users understand which platforms drive the most engagement and growth
 
 ## Scope
 The Link Manager is designed for both individual and organizational use. It supports:
-- Personal link/bookmark management
+- Personal and business affiliate link management
 - Team or group resource sharing (extensible)
 - Credit-based premium features and payments
 - In-app notifications for important events (e.g., link milestones)
-- Analytics and statistics for link performance
+- Analytics and statistics for link performance, including platform-specific click tracking
 - Extensible architecture for future enhancements (e.g., integrations, sharing, more analytics)
 
 ## Features
