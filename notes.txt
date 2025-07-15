@@ -40,10 +40,14 @@
 - **Environment Variables**: Store sensitive keys (JWT secret, Razorpay keys, DB URI) securely.
 
 ## Project Structure
-- **backend/**: All server-side code (controllers, models, routes, middleware).
+- **backend/**: All server-side code (controllers, models, routes, middleware, utils).
 - **frontend/**: React app (components, pages, styles).
 - **CREDIT_SYSTEM.md**: Full documentation of the credit/payment system.
 - **README.md**: Project overview, setup, and API summary.
+- **DEPLOYMENT.md**: Deployment instructions.
+- **TROUBLESHOOTING.md**: Troubleshooting guide.
+- **vercel.json**: Vercel deployment config.
+- **.gitignore**: Git ignore rules.
 
 ## Useful Concepts
 - **REST API**: Backend exposes endpoints for frontend to interact with data.
@@ -54,4 +58,4 @@
 
 ---
 
-> Use this file as a quick reference for all major technologies and concepts used in this project for study or revision purposes. 
+> Legacy/test scripts have been removed for clarity. The project now only contains production and documentation files. 

@@ -1,6 +1,26 @@
-# MERN Stack Link Manager
+# Link Manager Web Application
 
-A full-stack web application for managing and organizing bookmarks/links with user authentication, built with the MERN stack (MongoDB, Express.js, React.js, Node.js).
+**Created by Dependra Singh**
+
+## Introduction
+This website is a full-stack Link Manager application developed by Dependra Singh. It was created to help users efficiently manage, organize, and track their bookmarks and important links in one secure place. The motivation behind building this project was to provide a modern, user-friendly solution for both personal and professional link management, going beyond basic bookmarking by offering advanced features such as notifications, analytics, and a credit/payment system.
+
+## Why This Project Was Made
+Managing a growing number of links and bookmarks can quickly become overwhelming, especially for users who need to organize resources for work, study, or personal interests. Existing solutions often lack advanced features, flexibility, or security. This project was made to address these gaps by providing:
+- Secure user authentication and data storage
+- Easy organization and search of links
+- Real-time notifications and milestone tracking
+- Integrated credit and payment system for premium features
+- Analytics to help users understand link usage and engagement
+
+## Scope
+The Link Manager is designed for both individual and organizational use. It supports:
+- Personal link/bookmark management
+- Team or group resource sharing (extensible)
+- Credit-based premium features and payments
+- In-app notifications for important events (e.g., link milestones)
+- Analytics and statistics for link performance
+- Extensible architecture for future enhancements (e.g., integrations, sharing, more analytics)
 
 ## Features
 
@@ -62,16 +82,10 @@ For full technical details, troubleshooting, and advanced usage, see [CREDIT_SYS
 ```
 ├── backend/
 │   ├── controllers/
-│   │   ├── authController.js
-│   │   └── linkController.js
 │   ├── middleware/
-│   │   └── auth.js
 │   ├── models/
-│   │   ├── User.js
-│   │   └── Link.js
 │   ├── routes/
-│   │   ├── auth.js
-│   │   └── links.js
+│   ├── utils/
 │   ├── config.env
 │   ├── package.json
 │   └── server.js
@@ -79,15 +93,24 @@ For full technical details, troubleshooting, and advanced usage, see [CREDIT_SYS
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Dashboard.js
-│   │   │   ├── Home.js
-│   │   │   ├── Login.js
-│   │   │   └── Register.js
 │   │   ├── App.js
 │   │   └── index.js
-│   └── package.json
-└── README.md
+│   ├── package.json
+│   └── README.md
+├── CREDIT_SYSTEM.md
+├── DEPLOYMENT.md
+├── notes.txt
+├── README.md
+├── TROUBLESHOOTING.md
+├── vercel.json
+└── .gitignore
 ```
+
+---
+
+### Project Cleanup
+
+Legacy and test scripts (e.g., test-api.js, test-payment.js, test-destination-analytics.js, test-tracking.html, simple-test.js, update-existing-links.js) have been removed for clarity and maintainability. The project now only contains production and documentation files.
 
 ## Prerequisites
 
