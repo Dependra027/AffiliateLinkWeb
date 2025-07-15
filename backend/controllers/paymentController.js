@@ -1,6 +1,7 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
 const User = require('../models/User');
+const Subscription = require('../models/Subscription');
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -197,6 +198,30 @@ const getUserCredits = async (req, res) => {
   }
 };
 
+// Get user's subscriptions
+const getUserSubscriptions = async (req, res) => {
+  try {
+    console.log('Get user subscriptions request for user:', req.user._id);
+    
+    const userId = req.user._id;
+    const subscriptions = await Subscription.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .select('-raw_webhook');
+
+    console.log('User subscriptions data:', {
+      userId: userId,
+      subscriptionsCount: subscriptions.length
+    });
+
+    res.json({
+      subscriptions: subscriptions
+    });
+  } catch (error) {
+    console.error('Get user subscriptions error:', error);
+    res.status(500).json({ message: 'Failed to get user subscriptions: ' + error.message });
+  }
+};
+
 // Get available credit packages
 const getCreditPackages = async (req, res) => {
   try {
@@ -250,10 +275,290 @@ const deductCredits = async (req, res) => {
   }
 };
 
+// Create Razorpay subscription for a user
+const createSubscription = async (req, res) => {
+  try {
+    const { plan } = req.body; // 'monthly' or 'yearly'
+    const userId = req.user._id;
+
+    // Define plan details (amount in paise, interval, etc.)
+    const plans = {
+      monthly: {
+        plan_id: process.env.RAZORPAY_MONTHLY_PLAN_ID,
+        plan_name: 'Monthly Plan',
+        amount: 5000, // ₹50 in paise
+        interval: 'monthly',
+        interval_count: 1
+      },
+      yearly: {
+        plan_id: process.env.RAZORPAY_YEARLY_PLAN_ID,
+        plan_name: 'Yearly Plan',
+        amount: 49900, // ₹499 in paise
+        interval: 'yearly',
+        interval_count: 1
+      },
+    };
+
+    if (!plans[plan]) {
+      return res.status(400).json({ message: 'Invalid plan selected' });
+    }
+
+    const selectedPlan = plans[plan];
+
+    // Check if plan ID is configured
+    if (!selectedPlan.plan_id) {
+      console.log(`Plan ID not configured for ${plan} plan`);
+      return res.status(500).json({ 
+        message: `${selectedPlan.plan_name} is not configured. Please contact support.` 
+      });
+    }
+
+    // Create subscription on Razorpay
+    const subscription = await razorpay.subscriptions.create({
+      plan_id: selectedPlan.plan_id,
+      customer_notify: 1,
+      total_count: plan === 'monthly' ? 12 : 1, // 12 months for monthly, 1 year for yearly
+      notes: {
+        userId: userId.toString(),
+        plan: plan,
+        planName: selectedPlan.plan_name
+      }
+    });
+
+    // Store subscription in DB
+    const dbSub = await Subscription.create({
+      user: userId,
+      plan: plan,
+      razorpay_subscription_id: subscription.id,
+      status: 'created',
+      planDetails: {
+        name: selectedPlan.plan_name,
+        amount: selectedPlan.amount,
+        interval: selectedPlan.interval
+      }
+    });
+
+    console.log(`Subscription created for user ${userId}:`, {
+      plan: plan,
+      subscriptionId: subscription.id,
+      amount: selectedPlan.amount
+    });
+
+    res.json({
+      subscriptionId: subscription.id,
+      short_url: subscription.short_url,
+      plan: plan,
+      planName: selectedPlan.plan_name,
+      amount: selectedPlan.amount,
+      dbSubId: dbSub._id,
+    });
+  } catch (error) {
+    console.error('Create subscription error:', error);
+    
+    // Check if it's a Razorpay error
+    if (error.error) {
+      console.error('Razorpay error details:', error.error);
+      return res.status(500).json({ 
+        message: 'Payment gateway error: ' + (error.error.description || error.error.reason || 'Unknown error')
+      });
+    }
+    
+    res.status(500).json({ message: 'Failed to create subscription: ' + error.message });
+  }
+};
+
+// Razorpay webhook handler
+const handleRazorpayWebhook = async (req, res) => {
+  try {
+    // Razorpay webhook signature validation
+    const secret = process.env.RAZORPAY_WEBHOOK_SECRET;
+    const signature = req.headers['x-razorpay-signature'];
+    const body = JSON.stringify(req.body);
+    const expectedSignature = crypto
+      .createHmac('sha256', secret)
+      .update(body)
+      .digest('hex');
+    if (signature !== expectedSignature) {
+      console.error('Invalid Razorpay webhook signature');
+      return res.status(400).json({ message: 'Invalid signature' });
+    }
+
+    const event = req.body;
+    console.log('Webhook received:', JSON.stringify(event, null, 2));
+
+    // Helper to add credits only if not already added
+    async function addCreditsIfNotAlready(subscription, user, creditsToAdd, eventType) {
+      if (!user) {
+        console.error(`[${eventType}] User not found for subscription:`, subscription.user);
+        return;
+      }
+      // Prevent double crediting: check if already credited for this event
+      if (subscription.credited) {
+        console.log(`[${eventType}] Credits already added for subscription:`, subscription.razorpay_subscription_id);
+        return;
+      }
+      user.credits += creditsToAdd;
+      await user.save();
+      await Subscription.findOneAndUpdate(
+        { razorpay_subscription_id: subscription.razorpay_subscription_id },
+        { credited: true, raw_webhook: event }
+      );
+      console.log(`[${eventType}] Credits added:`, {
+        userId: user._id,
+        plan: subscription.plan,
+        creditsAdded: creditsToAdd,
+        totalCredits: user.credits
+      });
+    }
+
+    // Handle subscription activation
+    if (event.event === 'subscription.activated') {
+      const subId = event.payload.subscription.entity.id;
+      const subscription = await Subscription.findOne({ razorpay_subscription_id: subId });
+      if (!subscription) {
+        console.error('Subscription not found for subId:', subId);
+        return res.status(404).json({ message: 'Subscription not found' });
+      }
+      await Subscription.findOneAndUpdate(
+        { razorpay_subscription_id: subId },
+        {
+          status: 'active',
+          start_date: event.payload.subscription.entity.start_at
+            ? new Date(event.payload.subscription.entity.start_at * 1000)
+            : undefined,
+          end_date: event.payload.subscription.entity.end_at
+            ? new Date(event.payload.subscription.entity.end_at * 1000)
+            : undefined,
+          raw_webhook: event,
+        }
+      );
+      const user = await User.findById(subscription.user);
+      let creditsToAdd = 0;
+      if (subscription.plan === 'monthly') creditsToAdd = 50;
+      if (subscription.plan === 'yearly') creditsToAdd = 600;
+      if (creditsToAdd > 0) {
+        await addCreditsIfNotAlready(subscription, user, creditsToAdd, 'subscription.activated');
+      } else {
+        console.error('No credits to add for plan:', subscription.plan);
+      }
+    }
+    // Handle payment capture for subscriptions
+    else if (event.event === 'payment.captured') {
+      const payment = event.payload.payment.entity;
+      if (payment.subscription_id) {
+        const subscription = await Subscription.findOne({ razorpay_subscription_id: payment.subscription_id });
+        if (!subscription) {
+          console.error('Subscription not found for payment.subscription_id:', payment.subscription_id);
+          return res.status(404).json({ message: 'Subscription not found' });
+        }
+        await Subscription.findOneAndUpdate(
+          { razorpay_subscription_id: payment.subscription_id },
+          {
+            razorpay_payment_id: payment.id,
+            status: 'active',
+            raw_webhook: event,
+          }
+        );
+        const user = await User.findById(subscription.user);
+        let creditsToAdd = 0;
+        if (subscription.plan === 'monthly') creditsToAdd = 50;
+        if (subscription.plan === 'yearly') creditsToAdd = 600;
+        if (creditsToAdd > 0) {
+          await addCreditsIfNotAlready(subscription, user, creditsToAdd, 'payment.captured');
+        } else {
+          console.error('No credits to add for plan:', subscription.plan);
+        }
+      }
+    }
+    // Handle subscription payment events
+    else if (event.event === 'subscription.charged') {
+      const subscriptionEvent = event.payload.subscription.entity;
+      const subscriptionDoc = await Subscription.findOne({ razorpay_subscription_id: subscriptionEvent.id });
+      if (!subscriptionDoc) {
+        console.error('Subscription not found for subscriptionEvent.id:', subscriptionEvent.id);
+        return res.status(404).json({ message: 'Subscription not found' });
+      }
+      const user = await User.findById(subscriptionDoc.user);
+      let creditsToAdd = 0;
+      if (subscriptionDoc.plan === 'monthly') creditsToAdd = 50;
+      if (subscriptionDoc.plan === 'yearly') creditsToAdd = 600;
+      if (creditsToAdd > 0) {
+        await addCreditsIfNotAlready(subscriptionDoc, user, creditsToAdd, 'subscription.charged');
+      } else {
+        console.error('No credits to add for plan:', subscriptionDoc.plan);
+      }
+    }
+    res.status(200).json({ status: 'ok' });
+  } catch (error) {
+    console.error('Webhook handler error:', error);
+    res.status(500).json({ message: 'Webhook handler error: ' + error.message });
+  }
+};
+
+// Manual credit addition for subscriptions (for admin use)
+const addSubscriptionCredits = async (req, res) => {
+  try {
+    const { subscriptionId } = req.body;
+    const userId = req.user._id;
+
+    // Find the subscription
+    const subscription = await Subscription.findOne({ 
+      razorpay_subscription_id: subscriptionId,
+      user: userId 
+    });
+
+    if (!subscription) {
+      return res.status(404).json({ message: 'Subscription not found' });
+    }
+
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Calculate credits to add based on plan
+    let creditsToAdd = 0;
+    if (subscription.plan === 'monthly') {
+      creditsToAdd = 50;
+    } else if (subscription.plan === 'yearly') {
+      creditsToAdd = 600;
+    }
+
+    if (creditsToAdd > 0) {
+      user.credits += creditsToAdd;
+      await user.save();
+
+      console.log(`Manual credits added for subscription ${subscriptionId}:`, {
+        userId: user._id,
+        plan: subscription.plan,
+        creditsAdded: creditsToAdd,
+        totalCredits: user.credits
+      });
+
+      res.json({
+        message: 'Credits added successfully',
+        creditsAdded: creditsToAdd,
+        totalCredits: user.credits,
+        subscription: subscription
+      });
+    } else {
+      res.status(400).json({ message: 'Invalid subscription plan' });
+    }
+  } catch (error) {
+    console.error('Add subscription credits error:', error);
+    res.status(500).json({ message: 'Failed to add credits: ' + error.message });
+  }
+};
+
 module.exports = {
   createOrder,
   verifyPayment,
   getUserCredits,
+  getUserSubscriptions,
   getCreditPackages,
-  deductCredits
+  deductCredits,
+  createSubscription,
+  handleRazorpayWebhook,
+  addSubscriptionCredits
 }; 

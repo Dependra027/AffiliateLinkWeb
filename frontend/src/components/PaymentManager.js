@@ -2,20 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './PaymentManager.css';
+import SubscribeButton from './SubscribeButton';
 
 const PaymentManager = ({ user, setUser }) => {
   const [packages, setPackages] = useState([]);
   const [userCredits, setUserCredits] = useState(0);
   const [paymentHistory, setPaymentHistory] = useState([]);
+  const [userSubscriptions, setUserSubscriptions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [error, setError] = useState('');
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successData, setSuccessData] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchPackages();
     fetchUserCredits();
+    fetchUserSubscriptions();
     loadRazorpayScript();
   }, []);
 
@@ -66,6 +71,67 @@ const PaymentManager = ({ user, setUser }) => {
     }
   };
 
+  const fetchUserSubscriptions = async () => {
+    try {
+      console.log('Fetching user subscriptions...');
+      const response = await axios.get('/payments/subscriptions');
+      console.log('Subscriptions response:', response.data);
+      setUserSubscriptions(response.data.subscriptions);
+    } catch (error) {
+      console.error('Error fetching user subscriptions:', error);
+      // Don't show error for subscriptions as it's not critical
+    }
+  };
+
+  const addSubscriptionCredits = async (subscriptionId) => {
+    try {
+      setLoading(true);
+      const response = await axios.post('/payments/add-subscription-credits', {
+        subscriptionId: subscriptionId
+      });
+      
+      console.log('Credits added:', response.data);
+      
+      // Refresh user credits and subscriptions
+      await fetchUserCredits();
+      await fetchUserSubscriptions();
+      
+      alert(`Successfully added ${response.data.creditsAdded} credits! Your new balance is ${response.data.totalCredits} credits.`);
+    } catch (error) {
+      console.error('Error adding subscription credits:', error);
+      setError('Failed to add credits: ' + (error.response?.data?.message || error.message));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubscriptionSuccess = async (successData) => {
+    // Set success data and show success message
+    setSuccessData(successData);
+    setShowSuccess(true);
+    
+    // Refresh all data after successful subscription
+    await fetchUserCredits();
+    await fetchUserSubscriptions();
+    
+    // Update user object with new credits
+    setUser(prev => ({
+      ...prev,
+      credits: successData.totalCredits
+    }));
+    
+    // Hide success message after 5 seconds
+    setTimeout(() => {
+      setShowSuccess(false);
+      setSuccessData(null);
+    }, 5000);
+  };
+
+  const refreshData = async () => {
+    await fetchUserCredits();
+    await fetchUserSubscriptions();
+  };
+
   const handlePurchase = async (pkg) => {
     setLoading(true);
     setError('');
@@ -101,11 +167,11 @@ const PaymentManager = ({ user, setUser }) => {
           console.log('Payment successful:', response);
           try {
             // Verify payment
-            const verifyResponse = await axios.post('/payments/verify-payment', {
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature
-            });
+                          const verifyResponse = await axios.post('/payments/verify-payment', {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature
+              });
 
             console.log('Verification response:', verifyResponse.data);
 
@@ -187,9 +253,14 @@ const PaymentManager = ({ user, setUser }) => {
           </button>
           <h2>💰 Credit Management</h2>
         </div>
-        <div className="credit-balance">
-          <span className="balance-label">Current Balance:</span>
-          <span className="balance-amount">{userCredits} Credits</span>
+        <div className="header-right">
+          <button onClick={refreshData} className="refresh-btn" disabled={loading}>
+            🔄 Refresh
+          </button>
+          <div className="credit-balance">
+            <span className="balance-label">Current Balance:</span>
+            <span className="balance-amount">{userCredits} Credits</span>
+          </div>
         </div>
       </div>
 
@@ -203,6 +274,13 @@ const PaymentManager = ({ user, setUser }) => {
       {!razorpayLoaded && (
         <div className="warning-message">
           Loading payment gateway... Please wait.
+        </div>
+      )}
+
+      {showSuccess && successData && (
+        <div className="success-message">
+          Success! {successData.creditsAdded} credits added to your account. Your new balance is {successData.totalCredits} credits.
+          <button onClick={() => setShowSuccess(false)} className="close-success">×</button>
         </div>
       )}
 
@@ -230,6 +308,95 @@ const PaymentManager = ({ user, setUser }) => {
               </div>
             ))}
           </div>
+        </div>
+
+        {/* Subscription Section */}
+        <div className="subscription-section">
+          <h3>🔄 Premium Subscriptions</h3>
+          
+          {/* Current Subscription Status */}
+          {userSubscriptions.length > 0 && (
+            <div className="current-subscription">
+              <h4>Your Current Subscriptions</h4>
+              <div className="subscription-list">
+                {userSubscriptions.map((sub, index) => (
+                  <div key={index} className="subscription-item">
+                    <div className="subscription-info">
+                      <div className="subscription-name">{sub.planDetails?.name || sub.plan}</div>
+                      <div className={`subscription-status status-${sub.status}`}>{sub.status}</div>
+                    </div>
+                    <div className="subscription-details">
+                      <div className="subscription-date">
+                        Started: {formatDate(sub.createdAt)}
+                      </div>
+                      {sub.start_date && (
+                        <div className="subscription-date">
+                          Active: {formatDate(sub.start_date)}
+                        </div>
+                      )}
+                    </div>
+                                         {sub.status === 'active' && (
+                       <button
+                         onClick={() => addSubscriptionCredits(sub.razorpay_subscription_id)}
+                         disabled={loading}
+                         className="add-credits-btn"
+                       >
+                         Add Credits
+                       </button>
+                     )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className="subscription-grid">
+            {/* Monthly Plan */}
+            <div className="subscription-card">
+              <div className="subscription-header">
+                <h4>Monthly Plan</h4>
+                <div className="subscription-price">
+                  <span className="price-amount">₹50</span>
+                  <span className="price-period">/month</span>
+                </div>
+                <div className="subscription-badge">Most Popular</div>
+              </div>
+              <div className="subscription-features">
+                <ul>
+                  <li>✅ 50 Credits per month</li>
+                  <li>✅ Priority support</li>
+                  <li>✅ Advanced analytics</li>
+                  <li>✅ Custom branding</li>
+                  <li>✅ Unlimited links</li>
+                </ul>
+              </div>
+              <SubscribeButton plan="monthly" onSuccess={handleSubscriptionSuccess} />
+            </div>
+
+            {/* Yearly Plan */}
+            <div className="subscription-card featured">
+              <div className="subscription-header">
+                <h4>Yearly Plan</h4>
+                <div className="subscription-price">
+                  <span className="price-amount">₹499</span>
+                  <span className="price-period">/year</span>
+                </div>
+                <div className="subscription-badge">Save 17%</div>
+              </div>
+              <div className="subscription-features">
+                <ul>
+                  <li>✅ 600 Credits per year</li>
+                  <li>✅ Priority support</li>
+                  <li>✅ Advanced analytics</li>
+                  <li>✅ Custom branding</li>
+                  <li>✅ Unlimited links</li>
+                  <li>✅ Early access to new features</li>
+                </ul>
+              </div>
+              <SubscribeButton plan="yearly" onSuccess={handleSubscriptionSuccess} />
+            </div>
+          </div>
+          <p className="subscription-note">Subscribe to unlock premium features and get more credits!</p>
         </div>
 
         {/* Payment History */}

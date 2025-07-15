@@ -10,6 +10,8 @@ import ResetPassword from './components/ResetPassword';
 import EmailVerification from './components/EmailVerification';
 import AdminDashboard from './components/AdminDashboard';
 import PaymentManager from './components/PaymentManager';
+import Navbar from './components/Navbar';
+import StatsPage from './components/StatsPage';
 import './App.css';
 
 // Configure axios defaults
@@ -88,6 +90,7 @@ function App() {
   return (
     <Router>
       <div className="App">
+        <Navbar user={user} logout={logout} />
         <Routes>
           <Route 
             path="/" 
@@ -128,6 +131,14 @@ function App() {
                 ? <AdminDashboard /> 
                 : <Navigate to="/dashboard" />
             } 
+          />
+          <Route 
+            path="/stats/group/:groupId" 
+            element={<StatsPage user={user} />} 
+          />
+          <Route 
+            path="/stats/:linkId" 
+            element={<StatsPage user={user} />} 
           />
         </Routes>
       </div>

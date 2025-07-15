@@ -5,7 +5,11 @@ const {
   verifyPayment, 
   getUserCredits, 
   getCreditPackages, 
-  deductCredits 
+  deductCredits, 
+  createSubscription, 
+  handleRazorpayWebhook,
+  getUserSubscriptions,
+  addSubscriptionCredits
 } = require('../controllers/paymentController');
 const auth = require('../middleware/auth');
 
@@ -39,8 +43,12 @@ const deductCreditsValidation = [
 // Routes
 router.get('/packages', getCreditPackages); // Public route to get available packages
 router.get('/credits', auth, getUserCredits); // Get user's credits and payment history
+router.get('/subscriptions', auth, getUserSubscriptions); // Get user's subscriptions
 router.post('/create-order', auth, createOrderValidation, createOrder); // Create payment order
 router.post('/verify-payment', auth, verifyPaymentValidation, verifyPayment); // Verify payment
 router.post('/deduct-credits', auth, deductCreditsValidation, deductCredits); // Deduct credits
+router.post('/create-subscription', auth, createSubscription); // Create Razorpay subscription
+router.post('/add-subscription-credits', auth, addSubscriptionCredits); // Manually add subscription credits
+router.post('/webhook/razorpay', handleRazorpayWebhook); // Razorpay webhook endpoint
 
 module.exports = router; 

@@ -62,7 +62,8 @@ const register = async (req, res) => {
         username: user.username,
         email: user.email,
         isEmailVerified: user.isEmailVerified
-      }
+      },
+      token // Include JWT token in response
     });
   } catch (error) {
     console.error('Register error:', error);
@@ -116,7 +117,8 @@ const login = async (req, res) => {
         isEmailVerified: user.isEmailVerified,
         role: user.role,
         credits: user.credits
-      }
+      },
+      token // Include JWT token in response
     });
   } catch (error) {
     console.error('Login error:', error);

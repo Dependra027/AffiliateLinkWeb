@@ -87,12 +87,46 @@ JWT_SECRET=your_super_secret_jwt_key_here
 EMAIL_USER=your_gmail@gmail.com
 EMAIL_PASS=your_gmail_app_password
 CLIENT_URL=https://your-vercel-domain.vercel.app
+RAZORPAY_KEY_ID=your_razorpay_key_id
+RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 ```
 
 ### Optional Variables:
 ```
 NODE_ENV=production
+RAZORPAY_MONTHLY_PLAN_ID=plan_monthly_plan_id
+RAZORPAY_YEARLY_PLAN_ID=plan_yearly_plan_id
 ```
+
+## 💳 Step 3.5: Configure Razorpay Subscriptions (Optional)
+
+To enable subscription functionality, you need to set up Razorpay plans:
+
+### 1. Create Razorpay Plans
+1. Log into your [Razorpay Dashboard](https://dashboard.razorpay.com)
+2. Go to **Settings** → **Plans**
+3. Create two plans:
+
+   **Monthly Plan:**
+   - Plan Name: `Monthly Plan`
+   - Amount: `5000` (₹50 in paise)
+   - Billing Cycle: `Monthly`
+   - Plan ID: Copy the generated plan ID
+
+   **Yearly Plan:**
+   - Plan Name: `Yearly Plan`
+   - Amount: `49900` (₹499 in paise)
+   - Billing Cycle: `Yearly`
+   - Plan ID: Copy the generated plan ID
+
+### 2. Add Plan IDs to Environment Variables
+Add these to your Vercel environment variables:
+```
+RAZORPAY_MONTHLY_PLAN_ID=plan_xxxxxxxxxxxxx
+RAZORPAY_YEARLY_PLAN_ID=plan_xxxxxxxxxxxxx
+```
+
+**Note:** If you don't set these variables, the subscription buttons will show an error message when clicked.
 
 ## 🔄 Step 4: Automatic Deployment Setup
 
@@ -133,6 +167,12 @@ Once deployed, Vercel will automatically:
 
 4. **CORS Issues**
    - Verify CLIENT_URL matches your Vercel domain
+
+5. **Subscription Issues**
+   - Verify RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET are set
+   - Check if plan IDs are correctly configured
+   - Ensure Razorpay plans are active in your dashboard
+   - Check webhook URL is set to: `https://your-domain.vercel.app/api/payments/webhook/razorpay`
 
 ### Getting Help:
 - Check Vercel build logs
