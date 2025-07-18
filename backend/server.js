@@ -100,15 +100,7 @@ app.use('*', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-
-// For Vercel deployment, we need to export the app
-if (process.env.NODE_ENV === 'production') {
-  // In production (Vercel), we export the app instead of listening
-  module.exports = app;
-} else {
-  // In development, we listen on a port
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Health check: http://localhost:${PORT}/api/health`);
-  });
-} 
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/api/health`);
+}); 
