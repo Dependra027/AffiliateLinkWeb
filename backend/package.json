@@ -21,7 +21,9 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^7.5.0",
     "nodemailer": "^7.0.4",
-    "razorpay": "^2.9.6"
+    "razorpay": "^2.9.6",
+    "geoip-lite": "^1.4.10",
+    "ua-parser-js": "^2.0.4"
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
