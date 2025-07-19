@@ -110,7 +110,7 @@ const createLink = async (req, res) => {
     
     // Return link with tracking URL
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.CLIENT_URL || 'https://your-app-name.onrender.com')
+      ? (process.env.CLIENT_URL || 'https://affiliatelinkweb.onrender.com')
       : 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/links/t/${trackingIdToUse}`;
     res.status(201).json({
@@ -392,7 +392,7 @@ const getLinkAnalytics = async (req, res) => {
       platformStats,
       totalClicks,
       recentAnalytics,
-      trackingUrl: `${process.env.NODE_ENV === 'production' ? (process.env.CLIENT_URL || 'https://your-app-name.onrender.com') : 'http://localhost:5000'}/api/links/t/${link.customAlias || link.trackingId}`,
+      trackingUrl: `${process.env.NODE_ENV === 'production' ? (process.env.CLIENT_URL || 'https://affiliatelinkweb.onrender.com') : 'http://localhost:5000'}/api/links/t/${link.customAlias || link.trackingId}`,
       deviceCounts,
       browserCounts,
       countryCounts,
@@ -453,7 +453,7 @@ const generateNewLinkInGroup = async (req, res) => {
     });
     await newLink.save();
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.CLIENT_URL || 'https://your-app-name.onrender.com')
+      ? (process.env.CLIENT_URL || 'https://affiliatelinkweb.onrender.com')
       : 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/links/t/${trackingIdToUse}`;
     res.status(201).json({
