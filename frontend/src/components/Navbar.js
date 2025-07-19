@@ -76,6 +76,9 @@ function Navbar({ user, logout }) {
       <ul className="navbar-links">
         <li><Link to="/dashboard">Dashboard</Link></li>
         <li><Link to="/payments">Payments</Link></li>
+        {user && user.role === 'admin' && (
+          <li><Link to="/admin">Admin</Link></li>
+        )}
       </ul>
       <div className="navbar-user-info">
         {user && <span style={{ color: '#ffe082', marginRight: 12 }}>Welcome, {user.username}!</span>}
