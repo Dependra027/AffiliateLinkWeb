@@ -26,20 +26,26 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 // CORS configuration - dynamic based on environment
-const corsOptions = {
-  origin: process.env.NODE_ENV === 'production' 
-    ? [
-        'https://transcendent-hamster-452c1c.netlify.app',
-        'https://your-custom-domain.netlify.app', // Add your custom domain if you have one
-        process.env.CLIENT_URL // Fallback to environment variable
-      ].filter(Boolean)
-    : true,
+const allowedOrigins = [
+  'https://transcendent-hamster-452c1c.netlify.app',
+  'https://your-custom-domain.netlify.app', // Add your custom domain if you have one
+  process.env.CLIENT_URL // Fallback to environment variable
+].filter(Boolean);
+
+app.use(cors({
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    } else {
+      return callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Cookie']
-};
-
-app.use(cors(corsOptions));
+}));
 
 // Database connection with better error handling
 const connectDB = async () => {
