@@ -16,7 +16,7 @@ import './App.css';
 
 // Configure axios defaults
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? (process.env.REACT_APP_SERVER_ENDPOINT || '/api')
+  ? (process.env.REACT_APP_SERVER_ENDPOINT || 'https://affiliatelinkweb.onrender.com')
   : (process.env.REACT_APP_SERVER_ENDPOINT || 'http://localhost:5000/api');
 
 console.log('Axios baseURL:', baseURL);
