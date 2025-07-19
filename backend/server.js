@@ -16,6 +16,7 @@ const linkRoutes = require('./routes/links');
 const adminRoutes = require('./routes/admin');
 const paymentRoutes = require('./routes/payments');
 const notificationRoutes = require('./routes/notifications');
+const User = require('./models/User');
 
 const app = express();
 
@@ -55,7 +56,37 @@ const connectDB = async () => {
   }
 };
 
-connectDB();
+// Ensure dependrasingh027@gmail.com is admin
+async function ensureAdminUser() {
+  const adminEmail = 'dependrasingh027@gmail.com';
+  const adminUsername = 'dependrasingh027';
+  const defaultPassword = 'Admin@123'; // You should change this after first login
+
+  let user = await User.findOne({ email: adminEmail });
+  if (!user) {
+    user = new User({
+      username: adminUsername,
+      email: adminEmail,
+      password: defaultPassword,
+      role: 'admin',
+      isEmailVerified: true
+    });
+    await user.save();
+    console.log('Admin user created:', adminEmail);
+  } else if (user.role !== 'admin') {
+    user.role = 'admin';
+    user.isEmailVerified = true;
+    await user.save();
+    console.log('User promoted to admin:', adminEmail);
+  } else {
+    console.log('Admin user already exists:', adminEmail);
+  }
+}
+
+// Call ensureAdminUser after DB connection
+connectDB().then(() => {
+  ensureAdminUser();
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
