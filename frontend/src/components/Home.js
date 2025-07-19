@@ -7,7 +7,7 @@ const Home = () => {
     <div className="home">
       <div className="home-container">
         <div className="hero-section">
-          <h1>Link Manager</h1>
+          <h1>TrackLytics</h1>
           <p className="subtitle">Organize, save, and manage your favorite links in one place</p>
           <div className="features">
             <div className="feature">
