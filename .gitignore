@@ -13,6 +13,9 @@ frontend/dist/
 .env.test.local
 .env.production.local
 backend/config.env
+frontend/.env
+frontend/.env.development
+frontend/.env.production
 
 # Logs
 npm-debug.log*
@@ -66,4 +69,80 @@ ehthumbs.db
 Thumbs.db
 
 # Vercel
-.vercel 
+.vercel
+
+# Netlify
+.netlify/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Backup files
+*.bak
+*.backup
+*.tmp
+
+# Certificate files
+*.pem
+*.key
+*.crt
+*.p12
+
+# Payment and API keys
+razorpay.json
+stripe.json
+paypal.json
+api-keys.json
+
+# Local development files
+.env.example
+.env.sample
+
+# Package lock files (optional - uncomment if you want to ignore them)
+# package-lock.json
+# */package-lock.json
+
+# Build artifacts
+dist/
+build/
+*/dist/
+*/build/
+
+# Cache directories
+.cache/
+.parcel-cache/
+.next/
+.nuxt/
+
+# Temporary files
+*.log
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Deployment files
+deploy.sh
+deploy.yml
+.github/workflows/deploy.yml 

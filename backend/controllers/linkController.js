@@ -109,7 +109,10 @@ const createLink = async (req, res) => {
     await link.save();
     
     // Return link with tracking URL
-    const trackingUrl = `http://localhost:5000/api/links/t/${trackingIdToUse}`;
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? (process.env.CLIENT_URL || 'https://your-app-name.onrender.com')
+      : 'http://localhost:5000';
+    const trackingUrl = `${baseUrl}/api/links/t/${trackingIdToUse}`;
     res.status(201).json({
       ...link.toObject(),
       trackingUrl
@@ -389,7 +392,7 @@ const getLinkAnalytics = async (req, res) => {
       platformStats,
       totalClicks,
       recentAnalytics,
-      trackingUrl: `http://localhost:5000/api/links/t/${link.customAlias || link.trackingId}`,
+      trackingUrl: `${process.env.NODE_ENV === 'production' ? (process.env.CLIENT_URL || 'https://your-app-name.onrender.com') : 'http://localhost:5000'}/api/links/t/${link.customAlias || link.trackingId}`,
       deviceCounts,
       browserCounts,
       countryCounts,
@@ -449,7 +452,10 @@ const generateNewLinkInGroup = async (req, res) => {
       groupId
     });
     await newLink.save();
-    const trackingUrl = `http://localhost:5000/api/links/t/${trackingIdToUse}`;
+    const baseUrl = process.env.NODE_ENV === 'production' 
+      ? (process.env.CLIENT_URL || 'https://your-app-name.onrender.com')
+      : 'http://localhost:5000';
+    const trackingUrl = `${baseUrl}/api/links/t/${trackingIdToUse}`;
     res.status(201).json({
       ...newLink.toObject(),
       trackingUrl

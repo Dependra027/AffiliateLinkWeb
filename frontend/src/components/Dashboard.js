@@ -515,7 +515,7 @@ const Dashboard = ({ user, logout, setUser }) => {
                       </label>
                       {group.links.map(link => {
                         const trackingIdOrAlias = link.customAlias || link.trackingId;
-                        const trackingUrl = `http://localhost:5000/api/links/t/${trackingIdOrAlias}`;
+                        const trackingUrl = `${process.env.REACT_APP_SERVER_ENDPOINT || 'http://localhost:5000'}/api/links/t/${trackingIdOrAlias}`;
                         const isCopied = copiedLinks.has(link._id);
                         return (
                           <div key={link._id} className="tracking-url-container" style={{ marginBottom: 6, position: 'relative', overflow: 'visible', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
