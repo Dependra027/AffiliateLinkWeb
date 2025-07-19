@@ -71,7 +71,7 @@ function Navbar({ user, logout }) {
   return (
     <nav className="navbar">
       <div className="navbar-logo">
-        <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#ffe082' }}>Link Manager</span>
+        <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#ffe082' }}>TrackLytics</span>
       </div>
       <ul className="navbar-links">
         <li><Link to="/dashboard">Dashboard</Link></li>

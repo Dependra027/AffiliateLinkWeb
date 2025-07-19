@@ -90,7 +90,7 @@ function App() {
   return (
     <Router>
       <div className="App">
-        <Navbar user={user} logout={logout} />
+        {user && <Navbar user={user} logout={logout} />}
         <Routes>
           <Route 
             path="/" 
