@@ -73,6 +73,8 @@ function App() {
     try {
       await axios.post('/auth/logout');
       setUser(null);
+      localStorage.clear();
+      sessionStorage.clear();
     } catch (error) {
       console.error('Logout error:', error);
     }
