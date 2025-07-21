@@ -12,7 +12,7 @@ const EmailVerification = () => {
 
   const verifyEmail = useCallback(async (token) => {
     try {
-      const response = await axios.get(`/api/auth/verify-email/${token}`);
+      const response = await axios.get(`/auth/verify-email/${token}`);
       setMessage(response.data.message);
       setTimeout(() => {
         navigate('/dashboard');
