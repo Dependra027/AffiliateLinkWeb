@@ -1,13 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
+import { FaBars, FaTimes } from 'react-icons/fa';
 
 function Navbar({ user, logout }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 700);
   const dropdownRef = useRef(null);
+  const bellRef = useRef(null);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 700);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Fetch notifications when dropdown is opened
   useEffect(() => {
@@ -25,11 +35,14 @@ function Navbar({ user, logout }) {
     }
   }, [showNotifications]);
 
-  // Close dropdown on outside click
+  // Close dropdown on outside click (but not when clicking bell or dropdown)
   useEffect(() => {
     if (!showNotifications) return;
     function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+      if (
+        dropdownRef.current && !dropdownRef.current.contains(event.target) &&
+        bellRef.current && !bellRef.current.contains(event.target)
+      ) {
         setShowNotifications(false);
       }
     }
@@ -68,6 +81,71 @@ function Navbar({ user, logout }) {
     }
   };
 
+  if (isMobile) {
+    return (
+      <nav className="navbar slim-navbar">
+        <div className="navbar-title-left">TrackLytics</div>
+        <div className="navbar-right-group">
+          <div
+            className="notification-bell"
+            ref={bellRef}
+            onClick={() => setShowNotifications(s => !s)}
+          >
+            <span role="img" aria-label="Notifications">🔔</span>
+            {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+          </div>
+          {showNotifications && (
+            <div className="notification-dropdown" ref={dropdownRef}>
+              <div className="notification-header">
+                Notifications
+                {unreadCount > 0 && (
+                  <button className="mark-all-btn" onClick={markAllAsRead}>
+                    Mark all as read
+                  </button>
+                )}
+              </div>
+              <div className="notification-list">
+                {notifications.length === 0 ? (
+                  <div className="notification-item">(No notifications yet)</div>
+                ) : notifications.map(n => (
+                  <div
+                    key={n._id}
+                    className={`notification-item${!n.read ? ' unread' : ''}`}
+                    onClick={() => handleNotificationClick(n._id, n.read)}
+                    style={{ cursor: !n.read ? 'pointer' : 'default' }}
+                  >
+                    {!n.read && <span className="unread-dot" title="Unread"></span>}
+                    {n.message}
+                    {n.milestone && (
+                      <span style={{ color: '#3498db', marginLeft: 8 }}>
+                        (Milestone: {n.milestone})
+                      </span>
+                    )}
+                    <div style={{ fontSize: '0.8em', color: '#888' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          <button onClick={async () => { if (logout) { await logout(); navigate('/login'); } }} className="navbar-logout slim-logout">Logout</button>
+          <button className="navbar-menu-btn" onClick={() => setMenuOpen(m => !m)} aria-label="Menu">
+            {menuOpen ? <FaTimes /> : <FaBars />}
+          </button>
+        </div>
+        {menuOpen && (
+          <ul className="navbar-links-dropdown">
+            <li><Link to="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link></li>
+            <li><Link to="/payments" onClick={() => setMenuOpen(false)}>Payments</Link></li>
+            {user && user.role === 'admin' && (
+              <li><Link to="/admin" onClick={() => setMenuOpen(false)}>Admin</Link></li>
+            )}
+          </ul>
+        )}
+      </nav>
+    );
+  }
+
+  // Desktop layout
   return (
     <nav className="navbar">
       <div className="navbar-logo">
@@ -83,7 +161,11 @@ function Navbar({ user, logout }) {
       <div className="navbar-user-info">
         {user && <span style={{ color: '#ffe082', marginRight: 12 }}>Welcome, {user.username}!</span>}
         {user && <span className="credits-display" style={{ color: '#fff', marginRight: 12 }}>Credits: {user.credits || 0}</span>}
-        <div className="notification-bell" onClick={() => setShowNotifications(!showNotifications)}>
+        <div
+          className="notification-bell"
+          ref={bellRef}
+          onClick={() => setShowNotifications(s => !s)}
+        >
           <span role="img" aria-label="Notifications">🔔</span>
           {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
         </div>

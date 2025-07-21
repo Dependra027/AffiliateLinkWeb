@@ -455,6 +455,55 @@
   transform: scale(1.1);
 }
 
+.dashboard-header-info {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 0.7rem 1.2rem 0.2rem 1.2rem;
+  font-size: 1.08rem;
+  color: #ffe082;
+  font-weight: 500;
+}
+.dashboard-welcome {
+  color: #ffe082;
+  font-weight: 600;
+}
+.dashboard-credits {
+  background: #232733;
+  color: #ffe082;
+  border-radius: 8px;
+  padding: 0.13rem 0.7rem;
+  font-size: 1.01rem;
+  font-weight: 600;
+  min-width: 48px;
+  text-align: center;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+}
+@media (max-width: 700px) {
+  .dashboard-header-info {
+    gap: 0.5rem;
+    padding: 0.5rem 0.5rem 0.1rem 0.5rem;
+    font-size: 0.98rem;
+  }
+  .dashboard-credits {
+    font-size: 0.97rem;
+    padding: 0.09rem 0.4rem;
+    min-width: 32px;
+  }
+}
+@media (max-width: 500px) {
+  .dashboard-header-info {
+    gap: 0.2rem;
+    padding: 0.3rem 0.2rem 0.05rem 0.2rem;
+    font-size: 0.93rem;
+  }
+  .dashboard-credits {
+    font-size: 0.93rem;
+    padding: 0.05rem 0.2rem;
+    min-width: 18px;
+  }
+}
+
 @media (max-width: 768px) {
   .dashboard-content {
     padding: 1rem;
@@ -507,5 +556,51 @@
   
   .form-actions {
     flex-direction: column;
+  }
+} 
+
+@media (max-width: 500px) {
+  .dashboard-content {
+    padding: 0.5rem;
+  }
+  .header-content {
+    padding: 0 0.3rem;
+  }
+  .header-content h1 {
+    font-size: 1.1rem;
+  }
+  .form-container {
+    padding: 0.7rem;
+  }
+  .links-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.4rem;
+    width: 100%;
+  }
+  .link-card {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0.3rem 0.3rem !important;
+    font-size: 0.92rem !important;
+    border-radius: 7px !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.07) !important;
+    margin: 0 auto 0.4rem auto !important;
+  }
+  .link-header h3 {
+    font-size: 0.98rem;
+  }
+  .link-url {
+    font-size: 0.78rem;
+  }
+  .link-description {
+    font-size: 0.82rem;
+  }
+  .tag {
+    font-size: 0.68rem;
+    padding: 0.13rem 0.4rem;
+  }
+  .btn, .btn-primary, .btn-secondary {
+    font-size: 0.92rem;
+    padding: 0.4rem 0.6rem;
   }
 } 

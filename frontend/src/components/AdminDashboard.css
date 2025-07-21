@@ -379,3 +379,59 @@ td button.delete-btn:hover {
     padding: 20px;
   }
 } 
+
+@media (max-width: 500px) {
+  .admin-dashboard {
+    padding: 6px;
+  }
+  .admin-tabs button {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .stat-card {
+    padding: 10px;
+    font-size: 13px;
+  }
+  .recent-users, .recent-links {
+    padding: 10px;
+  }
+  .section-header h2 {
+    font-size: 1.1rem;
+  }
+  .section-header button {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+  .users-table, .links-table {
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  table {
+    font-size: 11px;
+    min-width: 500px;
+    overflow-x: auto;
+    display: block;
+  }
+  th, td {
+    padding: 6px;
+  }
+  .modal {
+    width: 99%;
+    padding: 10px;
+    max-width: 99vw;
+  }
+  .form-group input,
+  .form-group textarea,
+  .form-group select {
+    font-size: 12px;
+    padding: 7px;
+  }
+  .modal-actions button {
+    font-size: 12px;
+    padding: 7px 12px;
+  }
+} 

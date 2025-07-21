@@ -6,6 +6,12 @@ import { FaChartBar, FaCopy, FaCheck, FaQrcode, FaTimes, FaPlus, FaWhatsapp, FaF
 import { QRCodeCanvas } from 'qrcode.react';
 
 const Dashboard = ({ user, logout, setUser }) => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 700);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 700);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
   const [links, setLinks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -310,7 +316,12 @@ const Dashboard = ({ user, logout, setUser }) => {
 
   return (
     <div className="dashboard">
-      {/* Removed dashboard-navbar/header, now using Navbar.js globally */}
+      {isMobile && user && (
+        <div className="dashboard-header-info">
+          <span className="dashboard-welcome">Welcome, {user.username}!</span>
+          <span className="dashboard-credits">Credits: {user.credits || 0}</span>
+        </div>
+      )}
       <div className="dashboard-content">
         <div className="controls">
           <div className="search-filter">
