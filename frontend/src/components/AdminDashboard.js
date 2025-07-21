@@ -201,14 +201,16 @@ const AdminDashboard = () => {
             <div className="recent-users">
               <h3>Recent Users</h3>
               <div className="data-list">
-                {stats.recentUsers.map(user => (
-                  <div key={user._id} className="data-item">
-                    <span>{user.username}</span>
-                    <span className={`role ${user.role}`}>{user.role}</span>
-                    <span className={`verified ${user.isEmailVerified ? 'yes' : 'no'}`}>
-                      {user.isEmailVerified ? '✓' : '✗'}
-                    </span>
-                  </div>
+                {stats.recentUsers.filter(Boolean).map(user => (
+                  user ? (
+                    <div key={user._id} className="data-item">
+                      <span>{user.username}</span>
+                      <span className={`role ${user.role}`}>{user.role}</span>
+                      <span className={`verified ${user.isEmailVerified ? 'yes' : 'no'}`}>
+                        {user.isEmailVerified ? '✓' : '✗'}
+                      </span>
+                    </div>
+                  ) : null
                 ))}
               </div>
             </div>
@@ -216,11 +218,13 @@ const AdminDashboard = () => {
             <div className="recent-links">
               <h3>Recent Links</h3>
               <div className="data-list">
-                {stats.recentLinks.map(link => (
-                  <div key={link._id} className="data-item">
-                    <span>{link.title}</span>
-                    <span className="user">{link.userId.username}</span>
-                  </div>
+                {stats.recentLinks.filter(Boolean).map(link => (
+                  link && link.userId && link.userId.username ? (
+                    <div key={link._id} className="data-item">
+                      <span>{link.title}</span>
+                      <span className="user">{link.userId.username}</span>
+                    </div>
+                  ) : null
                 ))}
               </div>
             </div>
