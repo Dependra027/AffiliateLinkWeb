@@ -310,7 +310,7 @@ const AdminDashboard = () => {
                         {link.url}
                       </a>
                     </td>
-                    <td>{link.userId.username}</td>
+                    <td>{link.userId && link.userId.username ? link.userId.username : 'Unknown'}</td>
                     <td>
                       <div className="tags">
                         {link.tags.map((tag, index) => (

@@ -100,18 +100,17 @@ For full technical details, troubleshooting, and advanced usage, see [CREDIT_SYS
 │   └── README.md
 ├── CREDIT_SYSTEM.md
 ├── DEPLOYMENT.md
-├── notes.txt
-├── README.md
 ├── TROUBLESHOOTING.md
 ├── vercel.json
-└── .gitignore
+├── .gitignore
+└── README.md
 ```
 
 ---
 
 ### Project Cleanup
 
-Legacy and test scripts (e.g., test-api.js, test-payment.js, test-destination-analytics.js, test-tracking.html, simple-test.js, update-existing-links.js) have been removed for clarity and maintainability. The project now only contains production and documentation files.
+Legacy, test, and deployment checklist files (such as `notes.txt`, `deployment-checklist.md`, and `NETLIFY_DEPLOYMENT.md`) have been removed for clarity and maintainability. The project now only contains production and documentation files for a minimal, clean structure.
 
 ## Prerequisites
 
