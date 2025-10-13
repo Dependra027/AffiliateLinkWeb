@@ -4,6 +4,8 @@ import axios from 'axios';
 import './Dashboard.css';
 import { FaChartBar, FaCopy, FaCheck, FaQrcode, FaTimes, FaPlus, FaWhatsapp, FaFacebook, FaTwitter, FaDownload, FaShareAlt, FaEllipsisV } from 'react-icons/fa';
 import { QRCodeCanvas } from 'qrcode.react';
+import OnboardingModal from './OnboardingModal';
+import TourGuide from './TourGuide';
 
 const Dashboard = ({ user, logout, setUser }) => {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 700);
@@ -37,6 +39,8 @@ const Dashboard = ({ user, logout, setUser }) => {
   const [generateError, setGenerateError] = useState('');
   const navigate = useNavigate();
   const [sharePopup, setSharePopup] = useState({}); // { [linkId]: boolean }
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  const [showTour, setShowTour] = useState(false);
 
   const fetchLinks = useCallback(async () => {
     try {
@@ -57,6 +61,15 @@ const Dashboard = ({ user, logout, setUser }) => {
   useEffect(() => {
     fetchLinks();
   }, [fetchLinks]);
+
+  // Show onboarding once per user in this browser
+  useEffect(() => {
+    if (user && user.id) {
+      const key = `onboarding_seen_${user.id}`;
+      const seen = localStorage.getItem(key);
+      if (!seen) setShowOnboarding(true);
+    }
+  }, [user]);
 
   useEffect(() => {
     // Refetch credits after a successful purchase
@@ -314,8 +327,58 @@ const Dashboard = ({ user, logout, setUser }) => {
     }, {})
   );
 
+  // Tour steps configuration
+  const tourSteps = [
+    {
+      target: '.navbar-links',
+      title: 'Navigation Menu',
+      content: 'Use these icons to navigate between Dashboard, Payments, and Admin (if you\'re an admin).'
+    },
+    {
+      target: '.notification-bell',
+      title: 'Notifications',
+      content: 'Click the bell icon to see your notifications and milestone achievements.'
+    },
+    {
+      target: '.search-input',
+      title: 'Search Your Links',
+      content: 'Use this search bar to quickly find your saved links by title, URL, or tags.'
+    },
+    {
+      target: '.tag-filter',
+      title: 'Filter by Tags',
+      content: 'Filter your links by specific tags to organize and find related content easily.'
+    },
+    {
+      target: '.btn-primary',
+      title: 'Add New Link',
+      content: 'Click here to add a new link. You can set a custom title, description, and tags.'
+    },
+    {
+      target: '.link-card',
+      title: 'Your Links',
+      content: 'Each link card shows your saved links with tracking URLs you can share.'
+    },
+    {
+      target: '.stats-btn',
+      title: 'View Statistics',
+      content: 'Click the chart icon to see detailed analytics for each link or group.'
+    }
+  ];
+
   return (
     <div className="dashboard">
+      <OnboardingModal
+        open={showOnboarding}
+        onStart={() => { setShowOnboarding(false); setShowTour(true); localStorage.setItem(`onboarding_seen_${user.id}`, '1'); }}
+        onSkip={() => { setShowOnboarding(false); localStorage.setItem(`onboarding_seen_${user.id}`, '1'); }}
+      />
+      <TourGuide
+        steps={tourSteps}
+        isOpen={showTour}
+        onClose={() => setShowTour(false)}
+        onComplete={() => setShowTour(false)}
+      />
       {isMobile && user && (
         <div className="dashboard-header-info">
           <span className="dashboard-welcome">Welcome, {user.username}!</span>

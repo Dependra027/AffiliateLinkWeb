@@ -2,12 +2,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #181c24;
+  background: rgba(20, 20, 20, 0.95);
+  backdrop-filter: blur(20px);
   padding: 0.75rem 2rem;
   box-shadow: 0 2px 8px rgba(0,0,0,0.12);
   position: sticky;
   top: 0;
-  z-index: 100;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .navbar-logo a {
@@ -35,15 +37,21 @@
 .navbar-links a {
   color: #e0e0e0;
   text-decoration: none;
-  font-size: 1.1rem;
+  font-size: 1.3rem;
   padding: 0.5rem 1rem;
   border-radius: 6px;
   transition: background 0.2s, color 0.2s;
 }
 
+.nav-icon-link svg {
+  width: 20px;
+  height: 20px;
+}
+
 .navbar-links a:hover, .navbar-links .active {
-  background: #232733;
-  color: #ffe082;
+  background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.05));
+  color: #fff;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
 }
 
 .navbar-user {
@@ -78,8 +86,8 @@
   position: absolute;
   right: 1.5rem;
   top: 3.5rem;
-  background: #181c24;
-  border: 1px solid #222;
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.18);
   min-width: 280px;
@@ -90,8 +98,8 @@
 .notification-header {
   font-weight: bold;
   padding: 0.75rem 1rem 0.5rem 1rem;
-  border-bottom: 1px solid #232733;
-  background: #232733;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.06);
   border-radius: 8px 8px 0 0;
   color: #ffe082;
 }
@@ -103,9 +111,9 @@
 
 .notification-item {
   padding: 0.75rem 1rem;
-  border-bottom: 1px solid #232733;
+  border-bottom: 1px solid rgba(255,255,255,0.08);
   font-size: 0.97rem;
-  background: #181c24;
+  background: rgba(20, 20, 20, 0.95);
   color: #f5f5f5;
 }
 
@@ -128,7 +136,7 @@
 }
 
 .notification-item.unread {
-  background: #232733;
+  background: rgba(255,255,255,0.06);
   font-weight: 600;
   position: relative;
   color: #ffe082;

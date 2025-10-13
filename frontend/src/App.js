@@ -75,8 +75,15 @@ function App() {
       setUser(null);
       localStorage.clear();
       sessionStorage.clear();
+      // Redirect to home page after logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
+      // Still redirect even if logout fails
+      setUser(null);
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = '/';
     }
   };
 

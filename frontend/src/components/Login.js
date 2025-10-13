@@ -50,7 +50,7 @@ const Login = ({ setUser }) => {
 
     setLoading(true);
     try {
-      const response = await axios.post('/auth/login', formData);
+      const response = await axios.post('/auth/login', formData, { withCredentials: true });
       setUser(response.data.user);
       navigate('/dashboard');
     } catch (error) {

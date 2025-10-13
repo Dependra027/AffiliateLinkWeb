@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Navbar.css';
-import { FaBars, FaTimes } from 'react-icons/fa';
+import { FaBars, FaTimes, FaTachometerAlt, FaMoneyBillWave, FaUserShield } from 'react-icons/fa';
 
 function Navbar({ user, logout }) {
   const navigate = useNavigate();
@@ -77,7 +77,7 @@ function Navbar({ user, logout }) {
   const handleLogout = async () => {
     if (logout) {
       await logout();
-      navigate('/login');
+      // The logout function in App.js will handle the redirect
     }
   };
 
@@ -127,17 +127,17 @@ function Navbar({ user, logout }) {
               </div>
             </div>
           )}
-          <button onClick={async () => { if (logout) { await logout(); navigate('/login'); } }} className="navbar-logout slim-logout">Logout</button>
+          <button onClick={handleLogout} className="navbar-logout slim-logout">Logout</button>
           <button className="navbar-menu-btn" onClick={() => setMenuOpen(m => !m)} aria-label="Menu">
             {menuOpen ? <FaTimes /> : <FaBars />}
           </button>
         </div>
         {menuOpen && (
           <ul className="navbar-links-dropdown">
-            <li><Link to="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link></li>
-            <li><Link to="/payments" onClick={() => setMenuOpen(false)}>Payments</Link></li>
+            <li><Link to="/dashboard" onClick={() => setMenuOpen(false)} title="Dashboard" aria-label="Dashboard"><FaTachometerAlt /></Link></li>
+            <li><Link to="/payments" onClick={() => setMenuOpen(false)} title="Payments" aria-label="Payments"><FaMoneyBillWave /></Link></li>
             {user && user.role === 'admin' && (
-              <li><Link to="/admin" onClick={() => setMenuOpen(false)}>Admin</Link></li>
+              <li><Link to="/admin" onClick={() => setMenuOpen(false)} title="Admin" aria-label="Admin"><FaUserShield /></Link></li>
             )}
           </ul>
         )}
@@ -152,10 +152,10 @@ function Navbar({ user, logout }) {
         <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#ffe082' }}>TrackLytics</span>
       </div>
       <ul className="navbar-links">
-        <li><Link to="/dashboard">Dashboard</Link></li>
-        <li><Link to="/payments">Payments</Link></li>
+        <li><Link to="/dashboard" className="nav-icon-link" title="Dashboard" aria-label="Dashboard"><FaTachometerAlt /></Link></li>
+        <li><Link to="/payments" className="nav-icon-link" title="Payments" aria-label="Payments"><FaMoneyBillWave /></Link></li>
         {user && user.role === 'admin' && (
-          <li><Link to="/admin">Admin</Link></li>
+          <li><Link to="/admin" className="nav-icon-link" title="Admin" aria-label="Admin"><FaUserShield /></Link></li>
         )}
       </ul>
       <div className="navbar-user-info">
