@@ -5,7 +5,13 @@ import './Home.css';
 const Sidebar = () => {
   return (
     <div className="sidebar">
-      <div className="logo">T</div>
+      <div className="logo">
+        <img 
+          src={`${process.env.PUBLIC_URL}/tracklytics-icon.svg`} 
+          alt="TrackLytics" 
+          className="logo-icon"
+        />
+      </div>
       <ul className="menu">
         <li>
           <a 

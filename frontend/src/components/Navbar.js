@@ -225,7 +225,11 @@ function Navbar({ user, logout, setUser }) {
             variants={linkVariants}
           >
             <Link to="/dashboard" className="mobile-logo-container">
-              <span className="navbar-logo-mobile">📊</span>
+              <img 
+                src={`${process.env.PUBLIC_URL}/tracklytics-icon.svg`} 
+                alt="TrackLytics" 
+                className="navbar-logo-mobile"
+              />
               <span className="navbar-brand-text">TrackLytics</span>
             </Link>
           </motion.div>
@@ -413,7 +417,11 @@ function Navbar({ user, logout, setUser }) {
         variants={linkVariants}
       >
         <Link to="/dashboard" className="navbar-logo-container">
-          <span className="navbar-logo-icon">📊</span>
+          <img 
+            src={`${process.env.PUBLIC_URL}/tracklytics-icon.svg`} 
+            alt="TrackLytics" 
+            className="navbar-logo-icon"
+          />
           <span className="navbar-logo-text">TrackLytics</span>
         </Link>
       </motion.div>

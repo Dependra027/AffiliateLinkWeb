@@ -63,11 +63,24 @@
   margin-bottom: 2rem;
   transition: all 0.3s ease;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logo-icon {
+  width: 40px;
+  height: 40px;
+  transition: all 0.3s ease;
+}
+
+.sidebar .logo:hover .logo-icon {
+  transform: scale(1.1);
+  filter: brightness(1.2);
 }
 
 .sidebar .logo:hover {
   transform: scale(1.05);
-  color: #fff;
 }
 
 /* Menu Icons */

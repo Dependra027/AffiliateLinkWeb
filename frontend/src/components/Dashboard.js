@@ -374,6 +374,11 @@ const Dashboard = ({ user, logout, setUser }) => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showTour, setShowTour] = useState(false);
 
+  // Function to start tour manually
+  const startTour = () => {
+    setShowTour(true);
+  };
+
   const fetchLinks = useCallback(async () => {
     try {
       const params = {};
@@ -398,9 +403,15 @@ const Dashboard = ({ user, logout, setUser }) => {
   // Show onboarding once per user in this browser
   useEffect(() => {
     if (user && user.id) {
-      const key = `onboarding_seen_${user.id}`;
-      const seen = localStorage.getItem(key);
-      if (!seen) setShowOnboarding(true);
+      const onboardingKey = `onboarding_seen_${user.id}`;
+      const tourKey = `tour_completed_${user.id}`;
+      const onboardingSeen = localStorage.getItem(onboardingKey);
+      const tourCompleted = localStorage.getItem(tourKey);
+      
+      // Only show onboarding if user hasn't seen it before
+      if (!onboardingSeen) {
+        setShowOnboarding(true);
+      }
     }
   }, [user]);
 
@@ -718,14 +729,28 @@ const Dashboard = ({ user, logout, setUser }) => {
     >
       <OnboardingModal
         open={showOnboarding}
-        onStart={() => { setShowOnboarding(false); setShowTour(true); localStorage.setItem(`onboarding_seen_${user.id}`, '1'); }}
-        onSkip={() => { setShowOnboarding(false); localStorage.setItem(`onboarding_seen_${user.id}`, '1'); }}
+        onStart={() => { 
+          setShowOnboarding(false); 
+          setShowTour(true); 
+          localStorage.setItem(`onboarding_seen_${user.id}`, '1'); 
+        }}
+        onSkip={() => { 
+          setShowOnboarding(false); 
+          localStorage.setItem(`onboarding_seen_${user.id}`, '1');
+          localStorage.setItem(`tour_completed_${user.id}`, '1');
+        }}
       />
       <TourGuide
         steps={tourSteps}
         isOpen={showTour}
-        onClose={() => setShowTour(false)}
-        onComplete={() => setShowTour(false)}
+        onClose={() => { 
+          setShowTour(false);
+          localStorage.setItem(`tour_completed_${user.id}`, '1');
+        }}
+        onComplete={() => { 
+          setShowTour(false);
+          localStorage.setItem(`tour_completed_${user.id}`, '1');
+        }}
       />
       {isMobile && user && (
         <motion.div 
@@ -795,16 +820,30 @@ const Dashboard = ({ user, logout, setUser }) => {
             </motion.select>
           </div>
           
-          <motion.button
-            onClick={() => setShowAddForm(true)}
-            className="btn btn-primary"
-            disabled={editingLink || (user.credits <= 0)}
-            title={user.credits <= 0 ? 'You need credits to add a new link' : ''}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            Add New Link
-          </motion.button>
+          <div className="dashboard-actions">
+            <motion.button
+              onClick={startTour}
+              className="btn btn-secondary"
+              title="Take a tour of the dashboard"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              style={{ marginRight: '10px' }}
+            >
+              🎯 Take Tour
+            </motion.button>
+            
+            <motion.button
+              onClick={() => setShowAddForm(true)}
+              className="btn btn-primary"
+              disabled={editingLink || (user.credits <= 0)}
+              title={user.credits <= 0 ? 'You need credits to add a new link' : ''}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              Add New Link
+            </motion.button>
+          </div>
+          
           {user.credits <= 0 && (
             <motion.button
               onClick={navigateToPayments}
