@@ -1,0 +1,42 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="16" cy="16" r="15" fill="url(#gradient1)" stroke="url(#gradient2)" stroke-width="1"/>
+  
+  <!-- Link Icon -->
+  <g transform="translate(8, 8)">
+    <!-- Chain Link 1 -->
+    <path d="M4 2C4 1.44772 4.44772 1 5 1H7C7.55228 1 8 1.44772 8 2V4C8 4.55228 7.55228 5 7 5H6" 
+          stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    
+    <!-- Chain Link 2 -->
+    <path d="M8 10C8 10.5523 7.55228 11 7 11H5C4.44772 11 4 10.5523 4 10V8C4 7.44772 4.44772 7 5 7H6" 
+          stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+    
+    <!-- Connection Line -->
+    <path d="M6 5V7" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Analytics Chart Icon -->
+  <g transform="translate(8, 8)">
+    <!-- Bar Chart -->
+    <rect x="9" y="8" width="1.5" height="4" fill="white" rx="0.5"/>
+    <rect x="11" y="6" width="1.5" height="6" fill="white" rx="0.5"/>
+    <rect x="13" y="4" width="1.5" height="8" fill="white" rx="0.5"/>
+    
+    <!-- Line Chart -->
+    <path d="M9 10L11 8L13 6" stroke="white" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- Gradients -->
+  <defs>
+    <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f093fb;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#667eea;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+</svg>

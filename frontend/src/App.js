@@ -8,6 +8,14 @@ import Register from './components/Register';
 import Navbar from './components/Navbar';
 import './App.css';
 
+// Component to handle dynamic page titles
+const PageTitle = ({ title }) => {
+  useEffect(() => {
+    document.title = title ? `${title} - TrackLytics` : 'TrackLytics - Modern Link Management Platform';
+  }, [title]);
+  return null;
+};
+
 // Lazy load heavy components for better performance
 const Dashboard = lazy(() => import('./components/Dashboard'));
 const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
@@ -127,7 +135,7 @@ const AnimatedRoutes = ({ user, logout, setUser }) => {
           element={
             user ? 
             <Navigate to="/dashboard" replace /> : 
-            <PageTransition><Home /></PageTransition>
+            <PageTransition><PageTitle title="Home" /><Home /></PageTransition>
           } 
         />
         <Route 
@@ -135,7 +143,7 @@ const AnimatedRoutes = ({ user, logout, setUser }) => {
           element={
             user ? 
             <Navigate to="/dashboard" replace /> : 
-            <PageTransition><Login setUser={setUser} /></PageTransition>
+            <PageTransition><PageTitle title="Login" /><Login setUser={setUser} /></PageTransition>
           } 
         />
         <Route 
@@ -143,7 +151,7 @@ const AnimatedRoutes = ({ user, logout, setUser }) => {
           element={
             user ? 
             <Navigate to="/dashboard" replace /> : 
-            <PageTransition><Register setUser={setUser} /></PageTransition>
+            <PageTransition><PageTitle title="Register" /><Register setUser={setUser} /></PageTransition>
           } 
         />
         <Route 
@@ -151,6 +159,7 @@ const AnimatedRoutes = ({ user, logout, setUser }) => {
           element={
             user ? 
             <PageTransition>
+              <PageTitle title="Dashboard" />
               <Suspense fallback={<LoadingSpinner />}>
                 <Dashboard user={user} logout={logout} setUser={setUser} />
               </Suspense>
