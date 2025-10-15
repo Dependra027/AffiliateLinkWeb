@@ -96,6 +96,9 @@ const PaymentManager = ({ user, setUser }) => {
       await fetchUserCredits();
       await fetchUserSubscriptions();
       
+      // Dispatch custom event to notify navbar of credit update
+      window.dispatchEvent(new CustomEvent('creditsUpdated'));
+      
       alert(`Successfully added ${response.data.creditsAdded} credits! Your new balance is ${response.data.totalCredits} credits.`);
     } catch (error) {
       console.error('Error adding subscription credits:', error);
@@ -119,6 +122,9 @@ const PaymentManager = ({ user, setUser }) => {
       ...prev,
       credits: successData.totalCredits
     }));
+    
+    // Dispatch custom event to notify navbar of credit update
+    window.dispatchEvent(new CustomEvent('creditsUpdated'));
     
     // Hide success message after 5 seconds
     setTimeout(() => {
@@ -287,13 +293,13 @@ const PaymentManager = ({ user, setUser }) => {
       <div className="payment-sections">
         {/* Credit Packages */}
         <div className="packages-section">
-          <h3>💳 Purchase Credits</h3>
+          <h3>Purchase Credits</h3>
           <div className="packages-grid">
             {packages.map((pkg) => (
               <div key={pkg.id} className="package-card">
                 <div className="package-header">
                   <h4>{pkg.credits} Credits</h4>
-                  <div className="package-price">₹{pkg.price}</div>
+                  <div className="package-price">{pkg.price}</div>
                 </div>
                 <div className="package-description">
                   Get {pkg.credits} credits for ₹{pkg.price}
@@ -307,6 +313,21 @@ const PaymentManager = ({ user, setUser }) => {
                 </button>
               </div>
             ))}
+          </div>
+          
+          {/* Security and Trust Indicators */}
+          <div className="security-badges">
+            <div className="security-badge ssl-badge">SSL Secured</div>
+            <div className="security-badge encrypted-badge">256-bit Encryption</div>
+            <div className="security-badge">PCI Compliant</div>
+          </div>
+          
+          <div className="payment-methods">
+            <div className="payment-method">VISA</div>
+            <div className="payment-method">MC</div>
+            <div className="payment-method">AMEX</div>
+            <div className="payment-method">UPI</div>
+            <div className="payment-method">NET</div>
           </div>
         </div>
 

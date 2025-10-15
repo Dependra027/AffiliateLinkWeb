@@ -50,7 +50,7 @@ const userSchema = new mongoose.Schema({
   // Credit system fields
   credits: {
     type: Number,
-    default: 0,
+    default: 1, // Give 1 free credit to new users
     min: 0
   },
   // Payment history

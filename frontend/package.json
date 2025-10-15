@@ -9,7 +9,7 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.10.0",
     "caniuse-lite": "^1.0.30001727",
-    "lodash": "^4.17.21",
+    "framer-motion": "^12.23.24",
     "qrcode.react": "^4.2.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

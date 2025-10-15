@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const Notification = require('../models/Notification');
 const { sendWelcomeEmail, sendPasswordResetEmail, sendEmailVerification } = require('../utils/emailService');
 
 // Generate JWT Token
@@ -36,6 +37,19 @@ const register = async (req, res) => {
     
     await user.save();
 
+    // Create welcome notification about free token
+    try {
+      await Notification.create({
+        user: user._id,
+        type: 'system',
+        message: '🎉 Welcome! You have received 1 free credit to get started. Add your first link now!',
+        read: false
+      });
+    } catch (notificationError) {
+      console.error('Notification creation failed:', notificationError);
+      // Continue with registration even if notification fails
+    }
+
     // Send welcome email with verification
     try {
       await sendEmailVerification(email, username, verificationToken);
@@ -61,7 +75,8 @@ const register = async (req, res) => {
         id: user._id,
         username: user.username,
         email: user.email,
-        isEmailVerified: user.isEmailVerified
+        isEmailVerified: user.isEmailVerified,
+        credits: user.credits
       },
       token // Include JWT token in response
     });

@@ -1,18 +1,44 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import Home from './components/Home';
 import Login from './components/Login';
 import Register from './components/Register';
-import Dashboard from './components/Dashboard';
-import ForgotPassword from './components/ForgotPassword';
-import ResetPassword from './components/ResetPassword';
-import EmailVerification from './components/EmailVerification';
-import AdminDashboard from './components/AdminDashboard';
-import PaymentManager from './components/PaymentManager';
 import Navbar from './components/Navbar';
-import StatsPage from './components/StatsPage';
 import './App.css';
+
+// Lazy load heavy components for better performance
+const Dashboard = lazy(() => import('./components/Dashboard'));
+const ForgotPassword = lazy(() => import('./components/ForgotPassword'));
+const ResetPassword = lazy(() => import('./components/ResetPassword'));
+const EmailVerification = lazy(() => import('./components/EmailVerification'));
+const AdminDashboard = lazy(() => import('./components/AdminDashboard'));
+const PaymentManager = lazy(() => import('./components/PaymentManager'));
+const StatsPage = lazy(() => import('./components/StatsPage'));
+
+// Loading component for Suspense
+const LoadingSpinner = () => (
+  <motion.div 
+    className="loading"
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+  >
+    <motion.div 
+      className="spinner"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+    />
+    <motion.p
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.2 }}
+    >
+      Loading...
+    </motion.p>
+  </motion.div>
+);
 
 // Configure axios defaults
 const baseURL = process.env.NODE_ENV === 'production' 
@@ -24,6 +50,46 @@ console.log('NODE_ENV:', process.env.NODE_ENV);
 
 axios.defaults.baseURL = baseURL;
 axios.defaults.withCredentials = true;
+
+// Page transition variants
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    x: 20,
+    scale: 0.98
+  },
+  in: {
+    opacity: 1,
+    x: 0,
+    scale: 1
+  },
+  out: {
+    opacity: 0,
+    x: -20,
+    scale: 0.98
+  }
+};
+
+const pageTransition = {
+  type: "tween",
+  ease: "anticipate",
+  duration: 0.4
+};
+
+// Page transition wrapper component
+const PageTransition = ({ children }) => {
+  return (
+    <motion.div
+      initial="initial"
+      animate="in"
+      exit="out"
+      variants={pageVariants}
+      transition={pageTransition}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 // Add request interceptor for debugging
 axios.interceptors.request.use(
@@ -48,6 +114,132 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Animated routes component
+const AnimatedRoutes = ({ user, logout, setUser }) => {
+  const location = useLocation();
+
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        <Route 
+          path="/" 
+          element={
+            user ? 
+            <Navigate to="/dashboard" replace /> : 
+            <PageTransition><Home /></PageTransition>
+          } 
+        />
+        <Route 
+          path="/login" 
+          element={
+            user ? 
+            <Navigate to="/dashboard" replace /> : 
+            <PageTransition><Login setUser={setUser} /></PageTransition>
+          } 
+        />
+        <Route 
+          path="/register" 
+          element={
+            user ? 
+            <Navigate to="/dashboard" replace /> : 
+            <PageTransition><Register setUser={setUser} /></PageTransition>
+          } 
+        />
+        <Route 
+          path="/dashboard" 
+          element={
+            user ? 
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <Dashboard user={user} logout={logout} setUser={setUser} />
+              </Suspense>
+            </PageTransition> : 
+            <Navigate to="/login" replace />
+          } 
+        />
+        <Route 
+          path="/payments" 
+          element={
+            user ? 
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <PaymentManager user={user} setUser={setUser} />
+              </Suspense>
+            </PageTransition> : 
+            <Navigate to="/login" replace />
+          } 
+        />
+        <Route 
+          path="/forgot-password" 
+          element={
+            user ? 
+            <Navigate to="/dashboard" replace /> : 
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <ForgotPassword />
+              </Suspense>
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/reset-password" 
+          element={
+            user ? 
+            <Navigate to="/dashboard" replace /> : 
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <ResetPassword />
+              </Suspense>
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/verify-email" 
+          element={
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <EmailVerification />
+              </Suspense>
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/admin" 
+          element={
+            user && user.role === 'admin' 
+              ? <PageTransition>
+                  <Suspense fallback={<LoadingSpinner />}>
+                    <AdminDashboard />
+                  </Suspense>
+                </PageTransition>
+              : <Navigate to="/dashboard" replace />
+          } 
+        />
+        <Route 
+          path="/stats/group/:groupId" 
+          element={
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <StatsPage user={user} />
+              </Suspense>
+            </PageTransition>
+          } 
+        />
+        <Route 
+          path="/stats/:linkId" 
+          element={
+            <PageTransition>
+              <Suspense fallback={<LoadingSpinner />}>
+                <StatsPage user={user} />
+              </Suspense>
+            </PageTransition>
+          } 
+        />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 function App() {
   const [user, setUser] = useState(null);
@@ -89,67 +281,33 @@ function App() {
 
   if (loading) {
     return (
-      <div className="loading">
-        <div className="spinner"></div>
-        <p>Loading...</p>
-      </div>
+      <motion.div 
+        className="loading"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        <motion.div 
+          className="spinner"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+        />
+        <motion.p
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          Loading...
+        </motion.p>
+      </motion.div>
     );
   }
 
   return (
     <Router>
       <div className="App">
-        {user && <Navbar user={user} logout={logout} />}
-        <Routes>
-          <Route 
-            path="/" 
-            element={user ? <Navigate to="/dashboard" /> : <Home />} 
-          />
-          <Route 
-            path="/login" 
-            element={user ? <Navigate to="/dashboard" /> : <Login setUser={setUser} />} 
-          />
-          <Route 
-            path="/register" 
-            element={user ? <Navigate to="/dashboard" /> : <Register setUser={setUser} />} 
-          />
-          <Route 
-            path="/dashboard" 
-            element={user ? <Dashboard user={user} logout={logout} setUser={setUser} /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/payments" 
-            element={user ? <PaymentManager user={user} setUser={setUser} /> : <Navigate to="/login" />} 
-          />
-          <Route 
-            path="/forgot-password" 
-            element={user ? <Navigate to="/dashboard" /> : <ForgotPassword />} 
-          />
-          <Route 
-            path="/reset-password" 
-            element={user ? <Navigate to="/dashboard" /> : <ResetPassword />} 
-          />
-          <Route 
-            path="/verify-email" 
-            element={<EmailVerification />} 
-          />
-          <Route 
-            path="/admin" 
-            element={
-              user && user.role === 'admin' 
-                ? <AdminDashboard /> 
-                : <Navigate to="/dashboard" />
-            } 
-          />
-          <Route 
-            path="/stats/group/:groupId" 
-            element={<StatsPage user={user} />} 
-          />
-          <Route 
-            path="/stats/:linkId" 
-            element={<StatsPage user={user} />} 
-          />
-        </Routes>
+        {user && <Navbar user={user} logout={logout} setUser={setUser} />}
+        <AnimatedRoutes user={user} logout={logout} setUser={setUser} />
       </div>
     </Router>
   );

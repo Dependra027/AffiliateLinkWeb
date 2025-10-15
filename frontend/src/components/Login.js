@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import './Auth.css';
 
@@ -11,6 +12,31 @@ const Login = ({ setUser }) => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Animation variants
+  const containerVariants = {
+    hidden: { opacity: 0, y: 30 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.6,
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.4,
+        ease: "easeOut"
+      }
+    }
+  };
 
   const handleChange = (e) => {
     setFormData({
@@ -71,19 +97,47 @@ const Login = ({ setUser }) => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Welcome Back</h2>
-        <p className="auth-subtitle">Sign in to your account</p>
+    <motion.div 
+      className="auth-container"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div 
+        className="auth-card"
+        variants={itemVariants}
+        whileHover={{ y: -5 }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.h2 variants={itemVariants}>Welcome Back</motion.h2>
+        <motion.p 
+          className="auth-subtitle"
+          variants={itemVariants}
+        >
+          Sign in to your account
+        </motion.p>
         
-        {errors.general && (
-          <div className="error-message">{errors.general}</div>
-        )}
+        <AnimatePresence>
+          {errors.general && (
+            <motion.div 
+              className="error-message"
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+            >
+              {errors.general}
+            </motion.div>
+          )}
+        </AnimatePresence>
         
-        <form onSubmit={handleSubmit} className="auth-form">
-          <div className="form-group">
+        <motion.form 
+          onSubmit={handleSubmit} 
+          className="auth-form"
+          variants={containerVariants}
+        >
+          <motion.div className="form-group" variants={itemVariants}>
             <label htmlFor="email">Email</label>
-            <input
+            <motion.input
               type="email"
               id="email"
               name="email"
@@ -91,13 +145,26 @@ const Login = ({ setUser }) => {
               onChange={handleChange}
               className={errors.email ? 'error' : ''}
               placeholder="Enter your email"
+              whileFocus={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
             />
-            {errors.email && <span className="error-text">{errors.email}</span>}
-          </div>
+            <AnimatePresence>
+              {errors.email && (
+                <motion.span 
+                  className="error-text"
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                >
+                  {errors.email}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.div>
           
-          <div className="form-group">
+          <motion.div className="form-group" variants={itemVariants}>
             <label htmlFor="password">Password</label>
-            <input
+            <motion.input
               type="password"
               id="password"
               name="password"
@@ -105,25 +172,53 @@ const Login = ({ setUser }) => {
               onChange={handleChange}
               className={errors.password ? 'error' : ''}
               placeholder="Enter your password"
+              whileFocus={{ scale: 1.02 }}
+              transition={{ duration: 0.2 }}
             />
-            {errors.password && <span className="error-text">{errors.password}</span>}
-          </div>
+            <AnimatePresence>
+              {errors.password && (
+                <motion.span 
+                  className="error-text"
+                  initial={{ opacity: 0, y: -5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -5 }}
+                >
+                  {errors.password}
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.div>
           
-          <button type="submit" className="btn btn-primary" disabled={loading}>
+          <motion.button 
+            type="submit" 
+            className="btn btn-primary" 
+            disabled={loading}
+            variants={itemVariants}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+          >
             {loading ? 'Signing In...' : 'Sign In'}
-          </button>
-        </form>
+          </motion.button>
+        </motion.form>
         
-        <div className="auth-footer">
+        <motion.div 
+          className="auth-footer"
+          variants={itemVariants}
+        >
           <p>
-            Don't have an account? <Link to="/register">Sign up</Link>
+            Don't have an account? 
+            <motion.span whileHover={{ scale: 1.05 }}>
+              <Link to="/register">Sign up</Link>
+            </motion.span>
           </p>
           <p>
-            <Link to="/forgot-password">Forgot your password?</Link>
+            <motion.span whileHover={{ scale: 1.05 }}>
+              <Link to="/forgot-password">Forgot your password?</Link>
+            </motion.span>
           </p>
-        </div>
-      </div>
-    </div>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 };
 

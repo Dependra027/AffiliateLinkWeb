@@ -73,6 +73,8 @@ const Register = ({ setUser }) => {
       const { confirmPassword, ...registerData } = formData;
       const response = await axios.post('/auth/register', registerData);
       setUser(response.data.user);
+      // Show success message about free token
+      alert('🎉 Welcome! You have received 1 free credit to get started. Check your notifications for more details!');
       navigate('/dashboard');
     } catch (error) {
       if (error.response?.data?.message) {

@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import './Navbar.css';
 import { FaBars, FaTimes, FaTachometerAlt, FaMoneyBillWave, FaUserShield } from 'react-icons/fa';
 
-function Navbar({ user, logout }) {
+function Navbar({ user, logout, setUser }) {
   const navigate = useNavigate();
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -12,6 +14,88 @@ function Navbar({ user, logout }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 700);
   const dropdownRef = useRef(null);
   const bellRef = useRef(null);
+
+  // Animation variants
+  const navbarVariants = {
+    hidden: { opacity: 0, y: -50 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: "easeOut"
+      }
+    }
+  };
+
+  const linkVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    },
+    hover: {
+      scale: 1.1,
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  const dropdownVariants = {
+    hidden: { opacity: 0, y: -10, scale: 0.95 },
+    visible: {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    },
+    exit: {
+      opacity: 0,
+      y: -10,
+      scale: 0.95,
+      transition: {
+        duration: 0.15,
+        ease: "easeIn"
+      }
+    }
+  };
+
+  const notificationVariants = {
+    hidden: { opacity: 0, x: 20 },
+    visible: {
+      opacity: 1,
+      x: 0,
+      transition: {
+        duration: 0.3,
+        ease: "easeOut"
+      }
+    },
+    hover: {
+      backgroundColor: '#f0f0f0',
+      transition: {
+        duration: 0.2
+      }
+    }
+  };
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+        staggerChildren: 0.1
+      }
+    }
+  };
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 700);
@@ -50,6 +134,37 @@ function Navbar({ user, logout }) {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showNotifications]);
 
+  // Refresh credits when component mounts and listen for credit updates
+  useEffect(() => {
+    const fetchCredits = async () => {
+      try {
+        const response = await axios.get('/payments/credits');
+        setUser(prev => ({ ...prev, credits: response.data.credits }));
+      } catch (error) {
+        console.error('Error refreshing credits in navbar:', error);
+      }
+    };
+    
+    // Fetch credits when component mounts
+    if (user) {
+      fetchCredits();
+    }
+    
+    // Listen for custom credit update events
+    const handleCreditUpdate = () => {
+      if (user) {
+        fetchCredits();
+      }
+    };
+    
+    // Add event listener for credit updates
+    window.addEventListener('creditsUpdated', handleCreditUpdate);
+    
+    return () => {
+      window.removeEventListener('creditsUpdated', handleCreditUpdate);
+    };
+  }, [user, setUser]);
+
   // Mark a single notification as read when clicked
   const handleNotificationClick = async (id, read) => {
     if (!read) {
@@ -74,6 +189,21 @@ function Navbar({ user, logout }) {
     setUnreadCount(0);
   };
 
+  // Mark all notifications as seen (delete all)
+  const markAllAsSeen = async () => {
+    try {
+      await fetch('/api/notifications/delete-all', {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch (error) {
+      console.error('Error deleting notifications:', error);
+    }
+  };
+
   const handleLogout = async () => {
     if (logout) {
       await logout();
@@ -83,36 +213,314 @@ function Navbar({ user, logout }) {
 
   if (isMobile) {
     return (
-      <nav className="navbar slim-navbar">
-        <div className="navbar-title-left">TrackLytics</div>
-        <div className="navbar-right-group">
-          <div
-            className="notification-bell"
-            ref={bellRef}
-            onClick={() => setShowNotifications(s => !s)}
+      <motion.nav 
+        className="navbar slim-navbar"
+        variants={navbarVariants}
+        initial="hidden"
+        animate="visible"
+      >
+        <div className="mobile-navbar-content">
+          <motion.div 
+            className="navbar-title-left"
+            variants={linkVariants}
           >
-            <span role="img" aria-label="Notifications">🔔</span>
-            {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
+            <Link to="/dashboard" className="mobile-logo-container">
+              <span className="navbar-logo-mobile">📊</span>
+              <span className="navbar-brand-text">TrackLytics</span>
+            </Link>
+          </motion.div>
+          
+          <div className="mobile-navbar-actions">
+            <motion.div
+              className="notification-bell"
+              ref={bellRef}
+              onClick={() => setShowNotifications(s => !s)}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <span role="img" aria-label="Notifications">🔔</span>
+              {unreadCount > 0 && (
+                <motion.span 
+                  className="notification-badge"
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                >
+                  {unreadCount}
+                </motion.span>
+              )}
+            </motion.div>
+            
+            <motion.button 
+              className="navbar-menu-btn" 
+              onClick={() => setMenuOpen(m => !m)} 
+              aria-label="Menu"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              {menuOpen ? <FaTimes /> : <FaBars />}
+            </motion.button>
           </div>
-          {showNotifications && (
-            <div className="notification-dropdown" ref={dropdownRef}>
-              <div className="notification-header">
-                Notifications
-                {unreadCount > 0 && (
-                  <button className="mark-all-btn" onClick={markAllAsRead}>
-                    Mark all as read
+        </div>
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div 
+                className="notification-dropdown" 
+                ref={dropdownRef}
+                variants={dropdownVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+              >
+                <div className="notification-header">
+                  <div className="notification-title">
+                    <span>🔔</span>
+                    Notifications
+                  </div>
+                  {notifications.length > 0 && (
+                    <div className="notification-actions">
+                      {unreadCount > 0 && (
+                        <motion.button 
+                          className="mark-all-btn" 
+                          onClick={markAllAsRead}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          Mark as read
+                        </motion.button>
+                      )}
+                      <motion.button 
+                        className="mark-seen-btn" 
+                        onClick={markAllAsSeen}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Mark all as seen
+                      </motion.button>
+                    </div>
+                  )}
+                </div>
+                <div className="notification-list">
+                  {notifications.length === 0 ? (
+                    <div className="notification-item">(No notifications yet)</div>
+                  ) : notifications.map(n => (
+                    <motion.div
+                      key={n._id}
+                      className={`notification-item${!n.read ? ' unread' : ''}`}
+                      onClick={() => handleNotificationClick(n._id, n.read)}
+                      style={{ cursor: !n.read ? 'pointer' : 'default' }}
+                      variants={notificationVariants}
+                      whileHover="hover"
+                    >
+                      {!n.read && <span className="unread-dot" title="Unread"></span>}
+                      {n.message}
+                      {n.milestone && (
+                        <span style={{ color: '#3498db', marginLeft: 8 }}>
+                          (Milestone: {n.milestone})
+                        </span>
+                      )}
+                      <div style={{ fontSize: '0.8em', color: '#888' }}>{new Date(n.createdAt).toLocaleString()}</div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        <AnimatePresence>
+          {menuOpen && (
+            <motion.div 
+              className="mobile-menu-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => setMenuOpen(false)}
+            >
+              <motion.ul 
+                className="navbar-links-dropdown"
+                initial={{ opacity: 0, scale: 0.95, y: -10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                transition={{ duration: 0.3, ease: "easeOut" }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <motion.li
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 }}
+                >
+                  <Link to="/dashboard" onClick={() => setMenuOpen(false)} className="mobile-menu-item">
+                    <FaTachometerAlt className="menu-icon" />
+                    <span className="menu-text">Dashboard</span>
+                  </Link>
+                </motion.li>
+                <motion.li
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <Link to="/payments" onClick={() => setMenuOpen(false)} className="mobile-menu-item">
+                    <FaMoneyBillWave className="menu-icon" />
+                    <span className="menu-text">Payments</span>
+                  </Link>
+                </motion.li>
+                {user && user.role === 'admin' && (
+                  <motion.li
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                  >
+                    <Link to="/admin" onClick={() => setMenuOpen(false)} className="mobile-menu-item">
+                      <FaUserShield className="menu-icon" />
+                      <span className="menu-text">Admin Panel</span>
+                    </Link>
+                  </motion.li>
+                )}
+                <motion.div 
+                  className="mobile-menu-divider"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                />
+                <motion.li
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.5 }}
+                >
+                  <button onClick={handleLogout} className="mobile-menu-item logout-item">
+                    <span className="menu-icon">🚪</span>
+                    <span className="menu-text">Logout</span>
                   </button>
+                </motion.li>
+              </motion.ul>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.nav>
+    );
+  }
+
+  // Desktop layout
+  return (
+    <motion.nav 
+      className="navbar"
+      variants={navbarVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      <motion.div 
+        className="navbar-logo"
+        variants={linkVariants}
+      >
+        <Link to="/dashboard" className="navbar-logo-container">
+          <span className="navbar-logo-icon">📊</span>
+          <span className="navbar-logo-text">TrackLytics</span>
+        </Link>
+      </motion.div>
+      <motion.ul 
+        className="navbar-links"
+        variants={containerVariants}
+      >
+        <motion.li variants={linkVariants}>
+          <motion.div whileHover="hover">
+            <Link to="/dashboard" className="nav-icon-link" title="Dashboard" aria-label="Dashboard"><FaTachometerAlt /></Link>
+          </motion.div>
+        </motion.li>
+        <motion.li variants={linkVariants}>
+          <motion.div whileHover="hover">
+            <Link to="/payments" className="nav-icon-link" title="Payments" aria-label="Payments"><FaMoneyBillWave /></Link>
+          </motion.div>
+        </motion.li>
+        {user && user.role === 'admin' && (
+          <motion.li variants={linkVariants}>
+            <motion.div whileHover="hover">
+              <Link to="/admin" className="nav-icon-link" title="Admin" aria-label="Admin"><FaUserShield /></Link>
+            </motion.div>
+          </motion.li>
+        )}
+      </motion.ul>
+      <motion.div 
+        className="navbar-user-info"
+        variants={linkVariants}
+      >
+        {user && <span style={{ color: '#ffe082', marginRight: 12 }}>Welcome, {user.username}!</span>}
+        {user && (
+          <span 
+            className={`credits-display ${user.credits === 1 ? 'free-credit-highlight' : ''}`} 
+            style={{ color: '#fff', marginRight: 12 }}
+          >
+            Credits: {user.credits || 0}
+            {user.credits === 1 && <span className="free-credit-badge">🎉 FREE!</span>}
+          </span>
+        )}
+        <motion.div
+          className="notification-bell"
+          ref={bellRef}
+          onClick={() => setShowNotifications(s => !s)}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          <span role="img" aria-label="Notifications">🔔</span>
+          {unreadCount > 0 && (
+            <motion.span 
+              className="notification-badge"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+            >
+              {unreadCount}
+            </motion.span>
+          )}
+        </motion.div>
+        <AnimatePresence>
+          {showNotifications && (
+            <motion.div 
+              className="notification-dropdown" 
+              ref={dropdownRef}
+              variants={dropdownVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+            >
+              <div className="notification-header">
+                <div className="notification-title">
+                  <span>🔔</span>
+                  Notifications
+                </div>
+                {notifications.length > 0 && (
+                  <div className="notification-actions">
+                    {unreadCount > 0 && (
+                      <motion.button 
+                        className="mark-all-btn" 
+                        onClick={markAllAsRead}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        Mark as read
+                      </motion.button>
+                    )}
+                    <motion.button 
+                      className="mark-seen-btn" 
+                      onClick={markAllAsSeen}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      Mark all as seen
+                    </motion.button>
+                  </div>
                 )}
               </div>
               <div className="notification-list">
                 {notifications.length === 0 ? (
                   <div className="notification-item">(No notifications yet)</div>
                 ) : notifications.map(n => (
-                  <div
+                  <motion.div
                     key={n._id}
                     className={`notification-item${!n.read ? ' unread' : ''}`}
                     onClick={() => handleNotificationClick(n._id, n.read)}
                     style={{ cursor: !n.read ? 'pointer' : 'default' }}
+                    variants={notificationVariants}
+                    whileHover="hover"
                   >
                     {!n.read && <span className="unread-dot" title="Unread"></span>}
                     {n.message}
@@ -122,89 +530,22 @@ function Navbar({ user, logout }) {
                       </span>
                     )}
                     <div style={{ fontSize: '0.8em', color: '#888' }}>{new Date(n.createdAt).toLocaleString()}</div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
-            </div>
+            </motion.div>
           )}
-          <button onClick={handleLogout} className="navbar-logout slim-logout">Logout</button>
-          <button className="navbar-menu-btn" onClick={() => setMenuOpen(m => !m)} aria-label="Menu">
-            {menuOpen ? <FaTimes /> : <FaBars />}
-          </button>
-        </div>
-        {menuOpen && (
-          <ul className="navbar-links-dropdown">
-            <li><Link to="/dashboard" onClick={() => setMenuOpen(false)} title="Dashboard" aria-label="Dashboard"><FaTachometerAlt /></Link></li>
-            <li><Link to="/payments" onClick={() => setMenuOpen(false)} title="Payments" aria-label="Payments"><FaMoneyBillWave /></Link></li>
-            {user && user.role === 'admin' && (
-              <li><Link to="/admin" onClick={() => setMenuOpen(false)} title="Admin" aria-label="Admin"><FaUserShield /></Link></li>
-            )}
-          </ul>
-        )}
-      </nav>
-    );
-  }
-
-  // Desktop layout
-  return (
-    <nav className="navbar">
-      <div className="navbar-logo">
-        <span style={{ fontWeight: 700, fontSize: '1.3rem', color: '#ffe082' }}>TrackLytics</span>
-      </div>
-      <ul className="navbar-links">
-        <li><Link to="/dashboard" className="nav-icon-link" title="Dashboard" aria-label="Dashboard"><FaTachometerAlt /></Link></li>
-        <li><Link to="/payments" className="nav-icon-link" title="Payments" aria-label="Payments"><FaMoneyBillWave /></Link></li>
-        {user && user.role === 'admin' && (
-          <li><Link to="/admin" className="nav-icon-link" title="Admin" aria-label="Admin"><FaUserShield /></Link></li>
-        )}
-      </ul>
-      <div className="navbar-user-info">
-        {user && <span style={{ color: '#ffe082', marginRight: 12 }}>Welcome, {user.username}!</span>}
-        {user && <span className="credits-display" style={{ color: '#fff', marginRight: 12 }}>Credits: {user.credits || 0}</span>}
-        <div
-          className="notification-bell"
-          ref={bellRef}
-          onClick={() => setShowNotifications(s => !s)}
+        </AnimatePresence>
+        <motion.button 
+          onClick={handleLogout} 
+          className="navbar-logout"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
         >
-          <span role="img" aria-label="Notifications">🔔</span>
-          {unreadCount > 0 && <span className="notification-badge">{unreadCount}</span>}
-        </div>
-        {showNotifications && (
-          <div className="notification-dropdown" ref={dropdownRef}>
-            <div className="notification-header">
-              Notifications
-              {unreadCount > 0 && (
-                <button className="mark-all-btn" onClick={markAllAsRead}>
-                  Mark all as read
-                </button>
-              )}
-            </div>
-            <div className="notification-list">
-              {notifications.length === 0 ? (
-                <div className="notification-item">(No notifications yet)</div>
-              ) : notifications.map(n => (
-                <div
-                  key={n._id}
-                  className={`notification-item${!n.read ? ' unread' : ''}`}
-                  onClick={() => handleNotificationClick(n._id, n.read)}
-                  style={{ cursor: !n.read ? 'pointer' : 'default' }}
-                >
-                  {!n.read && <span className="unread-dot" title="Unread"></span>}
-                  {n.message}
-                  {n.milestone && (
-                    <span style={{ color: '#3498db', marginLeft: 8 }}>
-                      (Milestone: {n.milestone})
-                    </span>
-                  )}
-                  <div style={{ fontSize: '0.8em', color: '#888' }}>{new Date(n.createdAt).toLocaleString()}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        <button onClick={handleLogout} className="navbar-logout">Logout</button>
-      </div>
-    </nav>
+          Logout
+        </motion.button>
+      </motion.div>
+    </motion.nav>
   );
 }
 

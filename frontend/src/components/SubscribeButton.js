@@ -138,6 +138,9 @@ You can now create links and use your credits!
         onSuccess(response.data);
       }
       
+      // Dispatch custom event to notify navbar of credit update
+      window.dispatchEvent(new CustomEvent('creditsUpdated'));
+      
       // Force a page refresh to ensure all data is updated
       setTimeout(() => {
         window.location.reload();
