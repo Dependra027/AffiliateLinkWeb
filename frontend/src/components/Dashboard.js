@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import './Dashboard.css';
 import { FaChartBar, FaCopy, FaCheck, FaTimes, FaPlus, FaWhatsapp, FaFacebook, FaTwitter, FaDownload, FaShareAlt, FaEllipsisV } from 'react-icons/fa';
-import { QRCodeCanvas } from 'qrcode.react';
+// import { QRCodeCanvas } from 'qrcode.react'; // Removed unused import
 import OnboardingModal from './OnboardingModal';
 import TourGuide from './TourGuide';
 import useDebounce from '../hooks/useDebounce';
@@ -363,8 +363,8 @@ const Dashboard = ({ user, logout, setUser }) => {
   const [successMessage, setSuccessMessage] = useState('');
   const [formLoading, setFormLoading] = useState(false);
   const [copiedLinks, setCopiedLinks] = useState(new Set());
-  const [qrModalOpen, setQrModalOpen] = useState(false);
-  const [qrValue, setQrValue] = useState('');
+  // const [qrModalOpen, setQrModalOpen] = useState(false); // Removed unused state
+  // const [qrValue, setQrValue] = useState(''); // Removed unused variable
   const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [generateGroupId, setGenerateGroupId] = useState(null);
   const [generateAlias, setGenerateAlias] = useState('');
@@ -404,9 +404,9 @@ const Dashboard = ({ user, logout, setUser }) => {
   useEffect(() => {
     if (user && user.id) {
       const onboardingKey = `onboarding_seen_${user.id}`;
-      const tourKey = `tour_completed_${user.id}`;
+      // const tourKey = `tour_completed_${user.id}`; // Removed unused variable
       const onboardingSeen = localStorage.getItem(onboardingKey);
-      const tourCompleted = localStorage.getItem(tourKey);
+      // const tourCompleted = localStorage.getItem(tourKey); // Removed unused variable
       
       // Only show onboarding if user hasn't seen it before
       if (!onboardingSeen) {
@@ -432,7 +432,7 @@ const Dashboard = ({ user, logout, setUser }) => {
     if (user && user.credits !== undefined) {
       fetchCredits();
     }
-  }, [user?.credits, setUser]);
+  }, [user, setUser]);
 
   // Helper to close share popups when clicking outside
   useEffect(() => {
@@ -445,13 +445,13 @@ const Dashboard = ({ user, logout, setUser }) => {
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
-  };
+  // const handleLogout = async () => { // Removed unused function
+  //   try {
+  //     await logout();
+  //   } catch (error) {
+  //     console.error('Logout error:', error);
+  //   }
+  // };
 
   const handleAddLink = async (e) => {
     e.preventDefault();
@@ -640,7 +640,7 @@ const Dashboard = ({ user, logout, setUser }) => {
 
   // Helper to download QR code as image
   const downloadQrCode = (url, filename) => {
-    const canvas = document.createElement('canvas');
+    // const canvas = document.createElement('canvas'); // Removed unused variable
     const qr = document.createElement('div');
     document.body.appendChild(qr);
     import('qrcode.react').then(({ QRCodeCanvas }) => {
@@ -1029,40 +1029,7 @@ const Dashboard = ({ user, logout, setUser }) => {
             </motion.div>
           )}
         </motion.div>
-        {/* QR Code Modal */}
-        <AnimatePresence>
-          {qrModalOpen && (
-            <motion.div 
-              className="qr-modal-overlay" 
-              onClick={() => setQrModalOpen(false)}
-              variants={overlayVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-            >
-              <motion.div 
-                className="qr-modal" 
-                onClick={e => e.stopPropagation()}
-                variants={modalVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-              >
-                <motion.button 
-                  className="qr-modal-close" 
-                  onClick={() => setQrModalOpen(false)}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <FaTimes size={20} />
-                </motion.button>
-                <h3>Scan QR Code</h3>
-                <QRCodeCanvas value={qrValue} size={220} level="H" includeMargin={true} />
-                <div style={{ marginTop: 16, wordBreak: 'break-all', fontSize: '0.95rem', color: '#333' }}>{qrValue}</div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* QR Code Modal - Removed unused modal */}
         {/* Generate New Link Modal */}
         <AnimatePresence>
           {showGenerateModal && (

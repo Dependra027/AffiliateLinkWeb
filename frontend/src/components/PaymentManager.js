@@ -10,7 +10,7 @@ const PaymentManager = ({ user, setUser }) => {
   const [paymentHistory, setPaymentHistory] = useState([]);
   const [userSubscriptions, setUserSubscriptions] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [selectedPackage, setSelectedPackage] = useState(null);
+  // const [selectedPackage, setSelectedPackage] = useState(null); // Removed unused variables
   const [error, setError] = useState('');
   const [razorpayLoaded, setRazorpayLoaded] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);

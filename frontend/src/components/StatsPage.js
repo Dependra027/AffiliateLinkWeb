@@ -409,7 +409,7 @@ const StatsPage = ({ user }) => {
     </div>
   );
 
-  const { link, platformStats, totalClicks, recentAnalytics, trackingUrl, deviceCounts, browserCounts, countryCounts, referrerCounts, clicksOverTime, clicksByHour, destinationStats } = stats;
+  const { link, destinationStats } = stats;
 
   // Debug logging
   console.log('StatsPage Debug:', {
@@ -421,18 +421,18 @@ const StatsPage = ({ user }) => {
   });
 
   // Sort platforms by clicks (descending)
-  const sortedPlatforms = Object.entries(platformStats || {})
-    .sort(([,a], [,b]) => b.clicks - a.clicks)
-    .filter(([, data]) => data.clicks > 0);
+  // const sortedPlatforms = Object.entries(platformStats || {}) // Removed unused variables
+  //   .sort(([,a], [,b]) => b.clicks - a.clicks)
+  //   .filter(([, data]) => data.clicks > 0);
 
   // Convert breakdowns to chart data
-  const toChartData = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value }));
-  const deviceData = toChartData(deviceCounts || {});
-  const browserData = toChartData(browserCounts || {});
-  const countryData = toChartData(countryCounts || {});
-  const referrerData = toChartData(referrerCounts || {});
-  const clicksOverTimeData = clicksOverTime ? Object.entries(clicksOverTime).map(([date, value]) => ({ date, value })) : [];
-  const clicksByHourData = clicksByHour ? clicksByHour.map((value, hour) => ({ hour: hour.toString().padStart(2, '0'), value })) : [];
+  // const toChartData = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value })); // Removed unused variables
+  // const deviceData = toChartData(deviceCounts || {});
+  // const browserData = toChartData(browserCounts || {});
+  // const countryData = toChartData(countryCounts || {});
+  // const referrerData = toChartData(referrerCounts || {});
+  // const clicksOverTimeData = clicksOverTime ? Object.entries(clicksOverTime).map(([date, value]) => ({ date, value })) : [];
+  // const clicksByHourData = clicksByHour ? clicksByHour.map((value, hour) => ({ hour: hour.toString().padStart(2, '0'), value })) : [];
 
   return (
     <div className="stats-container">

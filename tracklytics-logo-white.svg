@@ -1,0 +1,39 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Circle -->
+  <circle cx="30" cy="30" r="28" fill="white" stroke="#E0E0E0" stroke-width="2"/>
+  
+  <!-- Link Icon -->
+  <g transform="translate(15, 15)">
+    <!-- Chain Link 1 -->
+    <path d="M8 4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V8C16 9.10457 15.1046 10 14 10H12" 
+          stroke="#667eea" stroke-width="2" stroke-linecap="round" fill="none"/>
+    
+    <!-- Chain Link 2 -->
+    <path d="M16 20C16 21.1046 15.1046 22 14 22H10C8.89543 22 8 21.1046 8 20V16C8 14.8954 8.89543 14 10 14H12" 
+          stroke="#667eea" stroke-width="2" stroke-linecap="round" fill="none"/>
+    
+    <!-- Connection Line -->
+    <path d="M12 10V14" stroke="#667eea" stroke-width="2" stroke-linecap="round"/>
+  </g>
+  
+  <!-- Analytics Chart Icon -->
+  <g transform="translate(15, 15)">
+    <!-- Bar Chart -->
+    <rect x="18" y="16" width="3" height="8" fill="#667eea" rx="1"/>
+    <rect x="22" y="12" width="3" height="12" fill="#667eea" rx="1"/>
+    <rect x="26" y="8" width="3" height="16" fill="#667eea" rx="1"/>
+    
+    <!-- Line Chart -->
+    <path d="M18 20L22 16L26 12" stroke="#667eea" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+  
+  <!-- Text -->
+  <text x="70" y="25" font-family="Inter, sans-serif" font-size="24" font-weight="700" fill="#333333">
+    TrackLytics
+  </text>
+  
+  <!-- Tagline -->
+  <text x="70" y="42" font-family="Inter, sans-serif" font-size="12" font-weight="400" fill="#666666">
+    Link Management Made Simple
+  </text>
+</svg>

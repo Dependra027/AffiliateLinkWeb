@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
 import './Navbar.css';
 import { FaBars, FaTimes, FaTachometerAlt, FaMoneyBillWave, FaUserShield } from 'react-icons/fa';
 
 function Navbar({ user, logout, setUser }) {
-  const navigate = useNavigate();
+  // const navigate = useNavigate(); // Removed unused variable
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);

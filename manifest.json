@@ -1,0 +1,26 @@
+{
+  "short_name": "TrackLytics",
+  "name": "TrackLytics - Modern Link Management Platform",
+  "description": "Organize, save, and manage your favorite links with analytics, QR codes, and smart organization.",
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "tracklytics-icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192"
+    },
+    {
+      "src": "tracklytics-logo.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#667eea",
+  "background_color": "#0d0d0d"
+}
