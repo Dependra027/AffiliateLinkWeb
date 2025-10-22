@@ -102,7 +102,7 @@ const LinkCard = memo(({
         </label>
         {group.links.map(link => {
           const trackingIdOrAlias = link.customAlias || link.trackingId;
-          const trackingUrl = `${process.env.NODE_ENV === 'production' ? (process.env.REACT_APP_SERVER_ENDPOINT || 'https://affiliatelinkweb.onrender.com') : (process.env.REACT_APP_SERVER_ENDPOINT || 'http://localhost:5000')}/api/links/t/${trackingIdOrAlias}`;
+          const trackingUrl = `${process.env.NODE_ENV === 'production' ? window.location.origin : (process.env.REACT_APP_SERVER_ENDPOINT || 'http://localhost:5000')}/api/links/t/${trackingIdOrAlias}`;
           const isCopied = copiedLinks.has(link._id);
           return (
             <div key={link._id} className="tracking-url-container" style={{ marginBottom: 6, position: 'relative', overflow: 'visible', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -432,7 +432,8 @@ const Dashboard = ({ user, logout, setUser }) => {
     if (user && user.credits !== undefined) {
       fetchCredits();
     }
-  }, [user, setUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only depend on user.id to avoid infinite loop
 
   // Helper to close share popups when clicking outside
   useEffect(() => {

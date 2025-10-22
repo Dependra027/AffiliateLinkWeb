@@ -163,7 +163,8 @@ function Navbar({ user, logout, setUser }) {
     return () => {
       window.removeEventListener('creditsUpdated', handleCreditUpdate);
     };
-  }, [user, setUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]); // Only depend on user.id to avoid infinite loop
 
   // Mark a single notification as read when clicked
   const handleNotificationClick = async (id, read) => {

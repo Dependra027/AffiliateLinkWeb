@@ -50,7 +50,7 @@ const LoadingSpinner = () => (
 
 // Configure axios defaults
 const baseURL = process.env.NODE_ENV === 'production' 
-  ? (process.env.REACT_APP_SERVER_ENDPOINT || 'https://affiliatelinkweb.onrender.com') + '/api'
+  ? 'https://affiliatelinkweb.onrender.com/api'  // Direct backend URL for now
   : (process.env.REACT_APP_SERVER_ENDPOINT || 'http://localhost:5000/api');
 
 console.log('Axios baseURL:', baseURL);

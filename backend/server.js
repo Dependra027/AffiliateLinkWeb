@@ -29,6 +29,7 @@ app.use(cookieParser());
 const isDev = (process.env.NODE_ENV !== 'production');
 const allowedOrigins = [
   'https://transcendent-hamster-452c1c.netlify.app',
+  'https://68f08068a57d2509fd878001--transcendent-hamster-452c1c.netlify.app', // Preview URL
   'https://your-custom-domain.netlify.app', // Add your custom domain if you have one
   process.env.CLIENT_URL,
   'http://localhost:3000',
@@ -39,14 +40,24 @@ app.use(cors({
   origin: function(origin, callback) {
     // Allow requests with no origin (like mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
+    
+    // In development, allow localhost and private network IPs
     if (isDev) {
-      // In development, allow localhost and private network IPs (192.168.x.x, 10.x.x.x, 172.16-31.x.x)
       const privateNetRegex = /^http:\/\/(localhost|127\.0\.0\.1|10\.|192\.168\.|172\.(1[6-9]|2\d|3[0-1])):\d+$/;
       if (privateNetRegex.test(origin)) return callback(null, true);
     }
+    
+    // Check if origin is in allowed list
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
     }
+    
+    // For Netlify deployments, allow any netlify.app subdomain
+    if (origin && origin.includes('.netlify.app')) {
+      return callback(null, true);
+    }
+    
+    console.log('CORS blocked origin:', origin);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
@@ -66,14 +77,22 @@ app.options('*', cors({
 const connectDB = async () => {
   try {
     const mongoURI = process.env.MONGO_URI || 'mongodb://localhost:27017/link-manager';
+    console.log('Attempting to connect to MongoDB...');
+    console.log('MongoDB URI:', mongoURI ? 'Set' : 'Not set');
+    
     await mongoose.connect(mongoURI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('Connected to MongoDB');
+    console.log('Connected to MongoDB successfully');
   } catch (err) {
     console.error('MongoDB connection error:', err);
-    process.exit(1);
+    // Don't exit in production, just log the error
+    if (process.env.NODE_ENV === 'production') {
+      console.error('MongoDB connection failed in production, but continuing...');
+    } else {
+      process.exit(1);
+    }
   }
 };
 
@@ -121,7 +140,9 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     message: 'Server is running', 
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    origin: req.get('origin') || 'No origin header',
+    userAgent: req.get('user-agent') || 'No user agent'
   });
 });
 

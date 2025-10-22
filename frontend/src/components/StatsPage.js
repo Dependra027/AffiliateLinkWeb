@@ -1,11 +1,524 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { FaArrowLeft, FaCopy, FaCheck, FaChevronDown, FaChevronRight } from 'react-icons/fa';
 import './StatsPage.css';
-import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer } from 'recharts';
+import { 
+  PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, ResponsiveContainer,
+  Line, AreaChart, Area, CartesianGrid, ComposedChart,
+  RadialBarChart, RadialBar
+} from 'recharts';
 
-const COLORS = ['#764ba2', '#4CAF50', '#FF9800', '#2196F3', '#E91E63', '#00BCD4', '#FFEB3B', '#9C27B0', '#FF5722', '#607D8B'];
+const COLORS = [
+  '#667eea', '#764ba2', '#f093fb', '#f5576c', '#4facfe', '#00f2fe', 
+  '#43e97b', '#38f9d7', '#ffecd2', '#fcb69f', '#a8edea', '#fed6e3',
+  '#ff9a9e', '#fecfef', '#fecfef', '#ffecd2', '#fcb69f', '#667eea'
+];
+
+// Memoized style objects to prevent re-renders
+const CHART_STYLES = {
+  tooltip: {
+    backgroundColor: '#fff',
+    border: '1px solid #e0e0e0',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+  },
+  cartesianGrid: {
+    strokeDasharray: "3 3",
+    stroke: "#f0f0f0"
+  },
+  xAxis: {
+    fontSize: 11,
+    fill: '#666'
+  },
+  yAxis: {
+    fontSize: 11,
+    fill: '#666'
+  }
+};
+
+// Memoized chart margins
+const CHART_MARGINS = {
+  top: 20,
+  right: 30,
+  left: 20,
+  bottom: 20
+};
+
+// Helper functions moved outside to prevent recreation
+const getPlatformIcon = (platform) => {
+  const icons = {
+    facebook: '📘',
+    twitter: '🐦',
+    instagram: '📷',
+    whatsapp: '💬',
+    linkedin: '💼',
+    tiktok: '🎵',
+    youtube: '📺',
+    telegram: '📡',
+    email: '📧',
+    direct: '🔗',
+    other: '🌐'
+  };
+  return icons[platform] || '🌐';
+};
+
+const getPlatformColor = (platform) => {
+  const colors = {
+    facebook: '#1877F2',
+    twitter: '#1DA1F2',
+    instagram: '#E4405F',
+    whatsapp: '#25D366',
+    linkedin: '#0A66C2',
+    tiktok: '#000000',
+    youtube: '#FF0000',
+    telegram: '#0088CC',
+    email: '#EA4335',
+    direct: '#6C757D',
+    other: '#6F42C1'
+  };
+  return colors[platform] || '#6F42C1';
+};
+
+// Helper function to detect platform from analytics data
+const detectPlatformFromAnalytics = (analytic) => {
+  const referrer = (analytic.referrer || '').toLowerCase();
+  const userAgent = (analytic.userAgent || '').toLowerCase();
+  
+  if (!referrer) return 'direct';
+  
+  if (referrer.includes('facebook.com') || referrer.includes('fb.com')) return 'facebook';
+  if (referrer.includes('twitter.com') || referrer.includes('x.com')) return 'twitter';
+  if (referrer.includes('instagram.com')) return 'instagram';
+  if (referrer.includes('whatsapp.com') || userAgent.includes('whatsapp')) return 'whatsapp';
+  if (referrer.includes('linkedin.com')) return 'linkedin';
+  if (referrer.includes('tiktok.com')) return 'tiktok';
+  if (referrer.includes('youtube.com') || referrer.includes('youtu.be')) return 'youtube';
+  if (referrer.includes('t.me') || userAgent.includes('telegram')) return 'telegram';
+  if (referrer.includes('mail.google.com') || referrer.includes('outlook.com') || referrer.includes('yahoo.com')) return 'email';
+  
+  return 'other';
+};
+
+// Helper: Render full stats for a link (used in both single-link and group views)
+const LinkStatsDetails = React.memo(({ stats, link, copied, copyToClipboard }) => {
+  const { platformStats, totalClicks, recentAnalytics, trackingUrl, deviceCounts, browserCounts, countryCounts, referrerCounts, clicksOverTime, clicksByHour } = stats;
+  
+  // Memoize data processing to prevent unnecessary recalculations
+  const processedData = useMemo(() => {
+    const sortedPlatforms = Object.entries(platformStats || {})
+      .sort(([,a], [,b]) => b.clicks - a.clicks)
+      .filter(([, data]) => data.clicks > 0);
+    
+    // Simple data conversion
+    const toChartData = (obj) => {
+      if (!obj || typeof obj !== 'object') return [];
+      return Object.entries(obj)
+        .filter(([name, value]) => name && value && value > 0)
+        .map(([name, value]) => ({ name, value: Number(value) || 0 }));
+    };
+    
+    const deviceData = toChartData(deviceCounts);
+    const browserData = toChartData(browserCounts);
+    const countryData = toChartData(countryCounts);
+    const referrerData = toChartData(referrerCounts);
+    
+    // Time series data
+    const clicksOverTimeData = clicksOverTime && typeof clicksOverTime === 'object' 
+      ? Object.entries(clicksOverTime)
+          .filter(([date, value]) => date && value !== undefined)
+          .map(([date, value]) => ({ 
+            date: date.length > 10 ? date.substring(5, 10) : date, 
+            value: Number(value) || 0 
+          }))
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+      : [];
+    
+    // Hourly data
+    const clicksByHourData = Array.isArray(clicksByHour) 
+      ? clicksByHour
+          .map((value, hour) => ({ 
+            hour: hour.toString().padStart(2, '0') + ':00', 
+            value: Number(value) || 0 
+          }))
+          .filter(item => item.value > 0)
+      : [];
+
+    return {
+      sortedPlatforms,
+      deviceData,
+      browserData,
+      countryData,
+      referrerData,
+      clicksOverTimeData,
+      clicksByHourData
+    };
+  }, [platformStats, deviceCounts, browserCounts, countryCounts, referrerCounts, clicksOverTime, clicksByHour]);
+
+  const { sortedPlatforms, deviceData, browserData, countryData, referrerData, clicksOverTimeData, clicksByHourData } = processedData;
+
+  return (
+    <div className="link-stats-details">
+      <div className="link-info">
+        <h2>{link.title}</h2>
+        <p className="original-url">{link.url}</p>
+        <div className="tracking-url-section">
+          <label>Tracking URL:</label>
+          <div className="tracking-url-container">
+            <input
+              type="text"
+              value={trackingUrl}
+              readOnly
+              className="tracking-url-input"
+            />
+            <button
+              onClick={() => copyToClipboard(trackingUrl)}
+              className={`copy-btn ${copied ? 'copied' : ''}`}
+            >
+              {copied ? <FaCheck /> : <FaCopy />}
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        </div>
+      </div>
+      <div className="stats-overview">
+        <div className="stat-card total-clicks">
+          <h3>Total Clicks</h3>
+          <div className="stat-number">{totalClicks}</div>
+        </div>
+        <div className="stat-card platforms">
+          <h3>Active Platforms</h3>
+          <div className="stat-number">{sortedPlatforms.length}</div>
+        </div>
+        <div className="stat-card recent">
+          <h3>Last 30 Days</h3>
+          <div className="stat-number">{recentAnalytics.length}</div>
+        </div>
+      </div>
+      {sortedPlatforms.length > 0 && (
+        <div className="platform-stats">
+          <h3>Platform Performance</h3>
+          <div className="platform-grid">
+            {sortedPlatforms.map(([platform, data]) => (
+              <div key={`platform-${platform}`} className="platform-card">
+                <div className="platform-header">
+                  <span className="platform-icon">{getPlatformIcon(platform)}</span>
+                  <span className="platform-name">{platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
+                </div>
+                <div className="platform-stats">
+                  <div className="platform-clicks">
+                    <span className="clicks-number">{data.clicks}</span>
+                    <span className="clicks-label">clicks</span>
+                  </div>
+                  <div className="platform-percentage">
+                    {data.percentage}% of total
+                  </div>
+                </div>
+                <div className="platform-bar">
+                  <div 
+                    className="platform-bar-fill"
+                    style={{ 
+                      width: `${data.percentage}%`,
+                      backgroundColor: getPlatformColor(platform)
+                    }}
+                  ></div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {recentAnalytics.length > 0 && (
+        <div className="recent-clicks">
+          <h3>Recent Clicks (Last 30 Days)</h3>
+          <div className="clicks-table-container">
+            <table className="clicks-table">
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Platform</th>
+                  <th>Location</th>
+                  <th>Device</th>
+                  <th>Browser</th>
+                  <th>IP</th>
+                </tr>
+              </thead>
+              <tbody>
+                {recentAnalytics.slice(0, 20).map((analytic, idx) => {
+                  const platform = detectPlatformFromAnalytics(analytic);
+                  return (
+                    <tr key={`analytic-${idx}-${analytic.timestamp}`}>
+                      <td>{new Date(analytic.timestamp).toLocaleString()}</td>
+                      <td>
+                        <span className="platform-badge" style={{ backgroundColor: getPlatformColor(platform) }}>
+                          {getPlatformIcon(platform)} {platform}
+                        </span>
+                      </td>
+                      <td>
+                        {analytic.city && analytic.country ? 
+                          `${analytic.city}, ${analytic.country}` : 
+                          analytic.country || 'Unknown'
+                        }
+                      </td>
+                      <td>{analytic.deviceType || 'Unknown'}</td>
+                      <td>{analytic.browser || 'Unknown'}</td>
+                      <td>{analytic.ip}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+      {recentAnalytics.length === 0 && (
+        <div className="no-data">
+          <p>No clicks recorded yet. Share your tracking link to start seeing analytics!</p>
+        </div>
+      )}
+      {/* Advanced Analytics Section */}
+      <div className="advanced-analytics">
+        <h3>Advanced Analytics</h3>
+        <div className="advanced-charts-grid">
+          {/* Clicks Over Time (Area Chart) */}
+          <div className="chart-card modern-chart">
+            <h4>Clicks Over Time (Last 30 Days)</h4>
+            {clicksOverTimeData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280} key="clicks-over-time">
+                <AreaChart data={clicksOverTimeData} margin={CHART_MARGINS}>
+                  <defs>
+                    <linearGradient id="clicksGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#667eea" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#764ba2" stopOpacity={0.1}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...CHART_STYLES.cartesianGrid} />
+                  <XAxis 
+                    dataKey="date" 
+                    tick={CHART_STYLES.xAxis} 
+                    angle={-30} 
+                    textAnchor="end" 
+                    height={60}
+                    stroke="#999"
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    tick={CHART_STYLES.yAxis}
+                    stroke="#999"
+                  />
+                  <Tooltip contentStyle={CHART_STYLES.tooltip} />
+                  <Area 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#667eea" 
+                    strokeWidth={3}
+                    fill="url(#clicksGradient)" 
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-chart">
+                <p>No time series data available</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Clicks By Hour (Modern Bar Chart) */}
+          <div className="chart-card modern-chart">
+            <h4>Clicks By Hour (Last 30 Days)</h4>
+            {clicksByHourData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280} key="clicks-by-hour">
+                <BarChart data={clicksByHourData} margin={CHART_MARGINS}>
+                  <defs>
+                    <linearGradient id="hourGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f093fb" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#f5576c" stopOpacity={0.8}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...CHART_STYLES.cartesianGrid} />
+                  <XAxis 
+                    dataKey="hour" 
+                    tick={{ fontSize: 12, fill: '#666' }} 
+                    label={{ value: 'Hour', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: '#666' } }}
+                    stroke="#999"
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    tick={CHART_STYLES.yAxis}
+                    stroke="#999"
+                  />
+                  <Tooltip contentStyle={CHART_STYLES.tooltip} />
+                  <Bar 
+                    dataKey="value" 
+                    fill="url(#hourGradient)"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-chart">
+                <p>No hourly data available</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Device Breakdown (Enhanced Pie Chart) */}
+          <div className="chart-card modern-chart">
+            <h4>Device Type Distribution</h4>
+            {deviceData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280} key="device-distribution">
+                <PieChart>
+                  <Pie 
+                    data={deviceData} 
+                    dataKey="value" 
+                    nameKey="name" 
+                    cx="50%" 
+                    cy="50%" 
+                    outerRadius={90} 
+                    innerRadius={30}
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    labelLine={false}
+                    isAnimationActive={false}
+                  >
+                    {deviceData.map((entry, idx) => (
+                      <Cell 
+                        key={`device-cell-${entry.name}-${idx}`} 
+                        fill={COLORS[idx % COLORS.length]} 
+                        stroke="#fff"
+                        strokeWidth={2}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={CHART_STYLES.tooltip} />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-chart">
+                <p>No device data available</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Browser Breakdown (Radial Bar Chart) */}
+          <div className="chart-card modern-chart">
+            <h4>Browser Usage</h4>
+            {browserData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280} key="browser-usage">
+                <RadialBarChart cx="50%" cy="50%" innerRadius="20%" outerRadius="90%" data={browserData}>
+                  <RadialBar 
+                    dataKey="value" 
+                    cornerRadius={10} 
+                    fill="#4facfe"
+                    isAnimationActive={false}
+                  />
+                  <Tooltip contentStyle={CHART_STYLES.tooltip} />
+                  <Legend />
+                </RadialBarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-chart">
+                <p>No browser data available</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Country Breakdown (Horizontal Bar Chart) */}
+          <div className="chart-card modern-chart">
+            <h4>Geographic Distribution</h4>
+            {countryData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280} key="geographic-distribution">
+                <BarChart 
+                  data={countryData.slice(0, 8)} 
+                  layout="horizontal"
+                  margin={CHART_MARGINS}
+                >
+                  <defs>
+                    <linearGradient id="countryGradient" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="5%" stopColor="#43e97b" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#38f9d7" stopOpacity={0.8}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...CHART_STYLES.cartesianGrid} />
+                  <XAxis 
+                    type="number" 
+                    tick={CHART_STYLES.xAxis}
+                    stroke="#999"
+                  />
+                  <YAxis 
+                    type="category" 
+                    dataKey="name" 
+                    tick={CHART_STYLES.yAxis}
+                    stroke="#999"
+                  />
+                  <Tooltip contentStyle={CHART_STYLES.tooltip} />
+                  <Bar 
+                    dataKey="value" 
+                    fill="url(#countryGradient)"
+                    radius={[0, 4, 4, 0]}
+                    isAnimationActive={false}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-chart">
+                <p>No geographic data available</p>
+              </div>
+            )}
+          </div>
+          
+          {/* Referrer Breakdown (Composed Chart) */}
+          <div className="chart-card modern-chart">
+            <h4>Traffic Sources</h4>
+            {referrerData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={280} key="traffic-sources">
+                <ComposedChart data={referrerData.slice(0, 6)} margin={CHART_MARGINS}>
+                  <defs>
+                    <linearGradient id="referrerGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#a8edea" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#fed6e3" stopOpacity={0.8}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid {...CHART_STYLES.cartesianGrid} />
+                  <XAxis 
+                    dataKey="name" 
+                    tick={CHART_STYLES.xAxis}
+                    stroke="#999"
+                  />
+                  <YAxis 
+                    allowDecimals={false} 
+                    tick={CHART_STYLES.yAxis}
+                    stroke="#999"
+                  />
+                  <Tooltip contentStyle={CHART_STYLES.tooltip} />
+                  <Bar 
+                    dataKey="value" 
+                    fill="url(#referrerGradient)"
+                    radius={[4, 4, 0, 0]}
+                    isAnimationActive={false}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="value" 
+                    stroke="#ff9a9e" 
+                    strokeWidth={3}
+                    dot={{ fill: '#ff9a9e', strokeWidth: 2, r: 4 }}
+                    isAnimationActive={false}
+                  />
+                </ComposedChart>
+              </ResponsiveContainer>
+            ) : (
+              <div className="no-data-chart">
+                <p>No traffic source data available</p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
 
 const StatsPage = ({ user }) => {
   const { linkId, groupId } = useParams();
@@ -17,6 +530,8 @@ const StatsPage = ({ user }) => {
   const [expandedLinks, setExpandedLinks] = useState(new Set());
 
   useEffect(() => {
+    let isMounted = true;
+    
     const fetchGroupAnalytics = async (groupId) => {
       try {
         setLoading(true);
@@ -32,32 +547,50 @@ const StatsPage = ({ user }) => {
         );
         // Compute group summary
         const totalClicks = analyticsArr.reduce((sum, a) => sum + (a.stats.totalClicks || 0), 0);
-        setStats({ groupLinks: analyticsArr, totalClicks });
+        if (isMounted) {
+          setStats({ groupLinks: analyticsArr, totalClicks });
+        }
       } catch (err) {
-        setError('Failed to fetch group analytics');
+        if (isMounted) {
+          setError('Failed to fetch group analytics');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+    
     const fetchSingleAnalytics = async (linkId) => {
       try {
         setLoading(true);
         const response = await axios.get(`/links/${linkId}/analytics`);
-        setStats(response.data);
+        if (isMounted) {
+          setStats(response.data);
+        }
       } catch (err) {
-        setError('Failed to fetch analytics');
+        if (isMounted) {
+          setError('Failed to fetch analytics');
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
+    
     if (location.pathname.startsWith('/stats/group/')) {
       fetchGroupAnalytics(groupId);
     } else {
       fetchSingleAnalytics(linkId);
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [linkId, groupId, location.pathname]);
 
-  const copyToClipboard = async (text) => {
+  const copyToClipboard = useCallback(async (text) => {
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -65,43 +598,9 @@ const StatsPage = ({ user }) => {
     } catch (err) {
       console.error('Failed to copy: ', err);
     }
-  };
+  }, []);
 
-  const getPlatformIcon = (platform) => {
-    const icons = {
-      facebook: '📘',
-      twitter: '🐦',
-      instagram: '📷',
-      whatsapp: '💬',
-      linkedin: '💼',
-      tiktok: '🎵',
-      youtube: '📺',
-      telegram: '📡',
-      email: '📧',
-      direct: '🔗',
-      other: '🌐'
-    };
-    return icons[platform] || '🌐';
-  };
-
-  const getPlatformColor = (platform) => {
-    const colors = {
-      facebook: '#1877F2',
-      twitter: '#1DA1F2',
-      instagram: '#E4405F',
-      whatsapp: '#25D366',
-      linkedin: '#0A66C2',
-      tiktok: '#000000',
-      youtube: '#FF0000',
-      telegram: '#0088CC',
-      email: '#EA4335',
-      direct: '#6C757D',
-      other: '#6F42C1'
-    };
-    return colors[platform] || '#6F42C1';
-  };
-
-  const toggleLink = (index) => {
+  const toggleLink = useCallback((index) => {
     setExpandedLinks(prev => {
       const newSet = new Set(prev);
       if (newSet.has(index)) {
@@ -111,241 +610,7 @@ const StatsPage = ({ user }) => {
       }
       return newSet;
     });
-  };
-
-  // Helper: Render full stats for a link (used in both single-link and group views)
-  function LinkStatsDetails({ stats, link, copied, copyToClipboard }) {
-    // Extract and prepare all the same data as in the single-link view
-    const { platformStats, totalClicks, recentAnalytics, trackingUrl, deviceCounts, browserCounts, countryCounts, referrerCounts, clicksOverTime, clicksByHour } = stats;
-    const sortedPlatforms = Object.entries(platformStats || {})
-      .sort(([,a], [,b]) => b.clicks - a.clicks)
-      .filter(([, data]) => data.clicks > 0);
-    const toChartData = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value }));
-    const deviceData = toChartData(deviceCounts || {});
-    const browserData = toChartData(browserCounts || {});
-    const countryData = toChartData(countryCounts || {});
-    const referrerData = toChartData(referrerCounts || {});
-    const clicksOverTimeData = clicksOverTime ? Object.entries(clicksOverTime).map(([date, value]) => ({ date, value })) : [];
-    const clicksByHourData = clicksByHour ? clicksByHour.map((value, hour) => ({ hour: hour.toString().padStart(2, '0'), value })) : [];
-
-  return (
-      <div className="link-stats-details">
-        <div className="link-info">
-          <h2>{link.title}</h2>
-          <p className="original-url">{link.url}</p>
-          <div className="tracking-url-section">
-            <label>Tracking URL:</label>
-            <div className="tracking-url-container">
-              <input
-                type="text"
-                value={trackingUrl}
-                readOnly
-                className="tracking-url-input"
-              />
-              <button
-                onClick={() => copyToClipboard(trackingUrl)}
-                className={`copy-btn ${copied ? 'copied' : ''}`}
-              >
-                {copied ? <FaCheck /> : <FaCopy />}
-                {copied ? 'Copied!' : 'Copy'}
-              </button>
-            </div>
-          </div>
-        </div>
-        <div className="stats-overview">
-          <div className="stat-card total-clicks">
-            <h3>Total Clicks</h3>
-            <div className="stat-number">{totalClicks}</div>
-          </div>
-          <div className="stat-card platforms">
-            <h3>Active Platforms</h3>
-            <div className="stat-number">{sortedPlatforms.length}</div>
-          </div>
-          <div className="stat-card recent">
-            <h3>Last 30 Days</h3>
-            <div className="stat-number">{recentAnalytics.length}</div>
-          </div>
-        </div>
-        {sortedPlatforms.length > 0 && (
-          <div className="platform-stats">
-            <h3>Platform Performance</h3>
-            <div className="platform-grid">
-              {sortedPlatforms.map(([platform, data]) => (
-                <div key={platform} className="platform-card">
-                  <div className="platform-header">
-                    <span className="platform-icon">{getPlatformIcon(platform)}</span>
-                    <span className="platform-name">{platform.charAt(0).toUpperCase() + platform.slice(1)}</span>
-                  </div>
-                  <div className="platform-stats">
-                    <div className="platform-clicks">
-                      <span className="clicks-number">{data.clicks}</span>
-                      <span className="clicks-label">clicks</span>
-                    </div>
-                    <div className="platform-percentage">
-                      {data.percentage}% of total
-                    </div>
-                  </div>
-                  <div className="platform-bar">
-                    <div 
-                      className="platform-bar-fill"
-                      style={{ 
-                        width: `${data.percentage}%`,
-                        backgroundColor: getPlatformColor(platform)
-                      }}
-                    ></div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-        {recentAnalytics.length > 0 && (
-          <div className="recent-clicks">
-            <h3>Recent Clicks (Last 30 Days)</h3>
-            <div className="clicks-table-container">
-              <table className="clicks-table">
-          <thead>
-                  <tr>
-              <th>Time</th>
-                    <th>Platform</th>
-                    <th>Location</th>
-              <th>Device</th>
-              <th>Browser</th>
-                    <th>IP</th>
-            </tr>
-          </thead>
-          <tbody>
-                  {recentAnalytics.slice(0, 20).map((analytic, idx) => {
-                    const platform = detectPlatformFromAnalytics(analytic);
-                    return (
-                      <tr key={idx}>
-                        <td>{new Date(analytic.timestamp).toLocaleString()}</td>
-                        <td>
-                          <span className="platform-badge" style={{ backgroundColor: getPlatformColor(platform) }}>
-                            {getPlatformIcon(platform)} {platform}
-                          </span>
-                        </td>
-                        <td>
-                          {analytic.city && analytic.country ? 
-                            `${analytic.city}, ${analytic.country}` : 
-                            analytic.country || 'Unknown'
-                          }
-                        </td>
-                        <td>{analytic.deviceType || 'Unknown'}</td>
-                        <td>{analytic.browser || 'Unknown'}</td>
-                        <td>{analytic.ip}</td>
-              </tr>
-                    );
-                  })}
-          </tbody>
-        </table>
-      </div>
-          </div>
-        )}
-        {recentAnalytics.length === 0 && (
-          <div className="no-data">
-            <p>No clicks recorded yet. Share your tracking link to start seeing analytics!</p>
-          </div>
-        )}
-        {/* Advanced Analytics Section */}
-        <div className="advanced-analytics">
-          <h3>Advanced Analytics</h3>
-          <div className="advanced-charts-grid">
-            {/* Clicks Over Time (Line Chart) */}
-            {clicksOverTimeData.length > 0 && (
-              <div className="chart-card">
-                <h4>Clicks Over Time (Last 30 Days)</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={clicksOverTimeData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-                    <XAxis dataKey="date" tick={{ fontSize: 11 }} angle={-30} textAnchor="end" height={60} />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" fill="#2196F3" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            {/* Clicks By Hour (Heatmap/Bar Chart) */}
-            {clicksByHourData.length > 0 && (
-              <div className="chart-card">
-                <h4>Clicks By Hour (Last 30 Days)</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={clicksByHourData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-                    <XAxis dataKey="hour" tick={{ fontSize: 12 }} label={{ value: 'Hour', position: 'insideBottom', offset: -5 }} />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" fill="#E91E63" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            {/* Device Breakdown */}
-            {deviceData.length > 0 && (
-              <div className="chart-card">
-                <h4>Device Type</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie data={deviceData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
-                      {deviceData.map((entry, idx) => <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            {/* Browser Breakdown */}
-            {browserData.length > 0 && (
-              <div className="chart-card">
-                <h4>Browser</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <PieChart>
-                    <Pie data={browserData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={70} label>
-                      {browserData.map((entry, idx) => <Cell key={entry.name} fill={COLORS[idx % COLORS.length]} />)}
-                    </Pie>
-                    <Tooltip />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            {/* Country Breakdown */}
-            {countryData.length > 0 && (
-              <div className="chart-card">
-                <h4>Country</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={countryData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" fill="#764ba2" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-            {/* Referrer Breakdown */}
-            {referrerData.length > 0 && (
-              <div className="chart-card">
-                <h4>Referrer</h4>
-                <ResponsiveContainer width="100%" height={220}>
-                  <BarChart data={referrerData} margin={{ top: 10, right: 10, left: 0, bottom: 10 }}>
-                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                    <YAxis allowDecimals={false} />
-                    <Tooltip />
-                    <Legend />
-                    <Bar dataKey="value" fill="#4CAF50" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
+  }, []);
 
   if (location.pathname.startsWith('/stats/group/')) {
     // Group stats view
@@ -409,30 +674,7 @@ const StatsPage = ({ user }) => {
     </div>
   );
 
-  const { link, destinationStats } = stats;
-
-  // Debug logging
-  console.log('StatsPage Debug:', {
-    linkId,
-    link: link ? { title: link.title, destinations: link.destinations } : null,
-    destinationStats: destinationStats ? destinationStats.length : 'undefined',
-    destinationStatsData: destinationStats,
-    shouldShowDestinationAnalytics: destinationStats && destinationStats.length > 1
-  });
-
-  // Sort platforms by clicks (descending)
-  // const sortedPlatforms = Object.entries(platformStats || {}) // Removed unused variables
-  //   .sort(([,a], [,b]) => b.clicks - a.clicks)
-  //   .filter(([, data]) => data.clicks > 0);
-
-  // Convert breakdowns to chart data
-  // const toChartData = (obj) => Object.entries(obj).map(([name, value]) => ({ name, value })); // Removed unused variables
-  // const deviceData = toChartData(deviceCounts || {});
-  // const browserData = toChartData(browserCounts || {});
-  // const countryData = toChartData(countryCounts || {});
-  // const referrerData = toChartData(referrerCounts || {});
-  // const clicksOverTimeData = clicksOverTime ? Object.entries(clicksOverTime).map(([date, value]) => ({ date, value })) : [];
-  // const clicksByHourData = clicksByHour ? clicksByHour.map((value, hour) => ({ hour: hour.toString().padStart(2, '0'), value })) : [];
+  const { link } = stats;
 
   return (
     <div className="stats-container">
@@ -449,24 +691,4 @@ const StatsPage = ({ user }) => {
   );
 };
 
-// Helper function to detect platform from analytics data
-const detectPlatformFromAnalytics = (analytic) => {
-  const referrer = (analytic.referrer || '').toLowerCase();
-  const userAgent = (analytic.userAgent || '').toLowerCase();
-  
-  if (!referrer) return 'direct';
-  
-  if (referrer.includes('facebook.com') || referrer.includes('fb.com')) return 'facebook';
-  if (referrer.includes('twitter.com') || referrer.includes('x.com')) return 'twitter';
-  if (referrer.includes('instagram.com')) return 'instagram';
-  if (referrer.includes('whatsapp.com') || userAgent.includes('whatsapp')) return 'whatsapp';
-  if (referrer.includes('linkedin.com')) return 'linkedin';
-  if (referrer.includes('tiktok.com')) return 'tiktok';
-  if (referrer.includes('youtube.com') || referrer.includes('youtu.be')) return 'youtube';
-  if (referrer.includes('t.me') || userAgent.includes('telegram')) return 'telegram';
-  if (referrer.includes('mail.google.com') || referrer.includes('outlook.com') || referrer.includes('yahoo.com')) return 'email';
-  
-  return 'other';
-};
-
-export default StatsPage; 
+export default StatsPage;
