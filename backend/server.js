@@ -57,6 +57,16 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // For ngrok tunnels, allow any ngrok.io subdomain
+    if (origin && origin.includes('.ngrok.io')) {
+      return callback(null, true);
+    }
+    
+    // For ngrok tunnels, allow any ngrok-free.app subdomain
+    if (origin && origin.includes('.ngrok-free.app')) {
+      return callback(null, true);
+    }
+    
     console.log('CORS blocked origin:', origin);
     return callback(new Error('Not allowed by CORS'));
   },

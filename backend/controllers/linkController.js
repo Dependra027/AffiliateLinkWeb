@@ -110,7 +110,7 @@ const createLink = async (req, res) => {
     
     // Return link with tracking URL
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.CLIENT_URL || 'https://affiliatelinkweb.onrender.com')
+      ? (process.env.BACKEND_URL || 'https://your-backend-url.herokuapp.com')
       : 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/links/t/${trackingIdToUse}`;
     res.status(201).json({
@@ -241,9 +241,13 @@ const redirectAndTrack = async (req, res) => {
     };
     
     // Add to platform-specific analytics
-    if (link.platformAnalytics && link.platformAnalytics[platform]) {
-      link.platformAnalytics[platform].push(analytics);
+    if (!link.platformAnalytics) {
+      link.platformAnalytics = {};
     }
+    if (!link.platformAnalytics[platform]) {
+      link.platformAnalytics[platform] = [];
+    }
+    link.platformAnalytics[platform].push(analytics);
     
     // Also add to legacy analytics for backward compatibility
     link.analytics.push(analytics);
@@ -392,7 +396,7 @@ const getLinkAnalytics = async (req, res) => {
       platformStats,
       totalClicks,
       recentAnalytics,
-      trackingUrl: `${process.env.NODE_ENV === 'production' ? (process.env.CLIENT_URL || 'https://affiliatelinkweb.onrender.com') : 'http://localhost:5000'}/api/links/t/${link.customAlias || link.trackingId}`,
+      trackingUrl: `${process.env.NODE_ENV === 'production' ? (process.env.BACKEND_URL || 'https://your-backend-url.herokuapp.com') : 'http://localhost:5000'}/api/links/t/${link.customAlias || link.trackingId}`,
       deviceCounts,
       browserCounts,
       countryCounts,
@@ -453,7 +457,7 @@ const generateNewLinkInGroup = async (req, res) => {
     });
     await newLink.save();
     const baseUrl = process.env.NODE_ENV === 'production' 
-      ? (process.env.CLIENT_URL || 'https://affiliatelinkweb.onrender.com')
+      ? (process.env.BACKEND_URL || 'https://your-backend-url.herokuapp.com')
       : 'http://localhost:5000';
     const trackingUrl = `${baseUrl}/api/links/t/${trackingIdToUse}`;
     res.status(201).json({
