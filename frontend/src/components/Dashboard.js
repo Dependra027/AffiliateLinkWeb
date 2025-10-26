@@ -102,10 +102,9 @@ const LinkCard = memo(({
         </label>
         {group.links.map(link => {
           const trackingIdOrAlias = link.customAlias || link.trackingId;
-          // Use backend API URL for tracking - get base URL without /api suffix
-          const apiUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-          const backendBaseUrl = apiUrl.endsWith('/api') ? apiUrl.slice(0, -4) : apiUrl.replace('/api', '');
-          const trackingUrl = `${backendBaseUrl}/api/links/t/${trackingIdOrAlias}`;
+          // Generate tracking URL - use production backend URL
+          const backendUrl = 'https://affiliatelinkweb.onrender.com';
+          const trackingUrl = `${backendUrl}/api/links/t/${trackingIdOrAlias}`;
           const isCopied = copiedLinks.has(link._id);
           return (
             <div key={link._id} className="tracking-url-container" style={{ marginBottom: 6, position: 'relative', overflow: 'visible', display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
